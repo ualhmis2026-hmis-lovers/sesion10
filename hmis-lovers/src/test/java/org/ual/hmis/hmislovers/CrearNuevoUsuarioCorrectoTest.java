@@ -26,13 +26,12 @@ public class CrearNuevoUsuarioCorrectoTest {
   public void setUp() {
     // Browser selector
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = false; // Cambiado a 'boolean' primitivo por buena práctica
+    boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
 
     switch (browser) {
       case 0:  // Firefox
-        // NOTA: Si usas Selenium 4.11 o superior, puedes comentar la línea de abajo 
-        // y Selenium descargará el driver solo sin necesidad de la carpeta drivers/
-        System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
+        
+        //System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
         
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
         if (headless) {
@@ -42,7 +41,7 @@ public class CrearNuevoUsuarioCorrectoTest {
         break;
 
       case 1: // Chrome
-        System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
+        //System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
         
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
         if (headless) {
@@ -89,25 +88,16 @@ public class CrearNuevoUsuarioCorrectoTest {
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
     
-    // ==========================================
-    // PASO: INICIAR SESIÓN COMO ADMIN FIRST
-    // ==========================================
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.id("login-password")).sendKeys(Keys.ENTER);
     
-    // ==========================================
-    // PASO: IR AL PANEL DE ADMINISTRACIÓN
-    // ==========================================
     WebElement btnAdmin = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-admin-header > .material-icons")));
     btnAdmin.click();
     
     WebElement btnAdd = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-admin-add")));
     btnAdd.click();
     
-    // ==========================================
-    // PASO: RELLENAR FORMULARIO
-    // ==========================================
     WebElement inputUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("admin-new-username")));
     inputUser.click();
     inputUser.sendKeys(nuevoUsuario);
@@ -119,10 +109,6 @@ public class CrearNuevoUsuarioCorrectoTest {
     WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     btnSubmitBar.click();
     
-    // ==========================================
-    // PARCHE ANTIBLOQUEO: ¿HAY ALERTA DE ÉXITO?
-    // ==========================================
-    // Si tu app lanza un alert("Usuario creado") nativo tras guardar, hay que aceptarlo o la tabla no cargará
     try {
         WebDriverWait shortWait = new WebDriverWait(driver, java.time.Duration.ofSeconds(2));
         shortWait.until(ExpectedConditions.alertIsPresent());
@@ -131,10 +117,7 @@ public class CrearNuevoUsuarioCorrectoTest {
         // Si no hay alerta nativa, continuamos de largo sin perder tiempo
     }
     
-    // ==========================================
-    // PASO: VALIDACIÓN EN LA LISTA
-    // ==========================================
-    // Modificamos el Localizador a uno más genérico y directo por texto visible en la pantalla
+
     WebElement celdaUsuario = wait.until(ExpectedConditions.visibilityOfElementLocated(
         By.xpath("//*[contains(text(), '" + nuevoUsuario + "')]")
     ));

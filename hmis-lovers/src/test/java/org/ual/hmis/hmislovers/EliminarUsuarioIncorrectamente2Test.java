@@ -23,13 +23,12 @@ public class EliminarUsuarioIncorrectamente2Test {
   public void setUp() {
     // Browser selector
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = false; // Cambiado a 'boolean' primitivo por buena práctica
+    boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
 
     switch (browser) {
       case 0:  // Firefox
-        // NOTA: Si usas Selenium 4.11 o superior, puedes comentar la línea de abajo 
-        // y Selenium descargará el driver solo sin necesidad de la carpeta drivers/
-        System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
+        
+        //System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
         
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
         if (headless) {
@@ -39,7 +38,7 @@ public class EliminarUsuarioIncorrectamente2Test {
         break;
 
       case 1: // Chrome
-        System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
+        //System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
         
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
         if (headless) {
@@ -100,11 +99,6 @@ public class EliminarUsuarioIncorrectamente2Test {
     WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-auth-submit")));
     btnSubmit.click();
 
-    // =========================================================================
-    // SOLUCIÓN DEFINITIVA: VERIFICACIÓN POR PERSISTENCIA DE INTERFAZ
-    // =========================================================================
-    // Si las credenciales fallan, la aplicación web NO debe redirigirte al panel privado.
-    // Confirmamos el fallo asegurándonos de que el botón de login sigue visible y disponible en pantalla.
     WebElement botonSigueVisible = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".btn-auth-submit")));
     
     // Si llegamos aquí sin Timeouts, el elemento sigue en el DOM, lo que certifica que el acceso fue denegado.

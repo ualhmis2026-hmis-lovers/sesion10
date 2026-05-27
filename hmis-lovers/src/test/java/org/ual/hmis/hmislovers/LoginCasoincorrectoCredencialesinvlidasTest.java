@@ -26,13 +26,12 @@ public class LoginCasoincorrectoCredencialesinvlidasTest {
   public void setUp() {
     // Browser selector
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = false; // Cambiado a 'boolean' primitivo por buena práctica
+    boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
 
     switch (browser) {
       case 0:  // Firefox
-        // NOTA: Si usas Selenium 4.11 o superior, puedes comentar la línea de abajo 
-        // y Selenium descargará el driver solo sin necesidad de la carpeta drivers/
-        System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
+        
+        //System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
         
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
         if (headless) {
@@ -42,7 +41,7 @@ public class LoginCasoincorrectoCredencialesinvlidasTest {
         break;
 
       case 1: // Chrome
-        System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
+        //System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
         
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
         if (headless) {
@@ -93,10 +92,6 @@ public class LoginCasoincorrectoCredencialesinvlidasTest {
     
     // 5 | Pulsamos ENTER en el input vacío para disparar las validaciones nativas de la app
     inputUser.sendKeys(Keys.ENTER);
-
-    // ==========================================
-    // VALIDACIÓN DE ERRORES POR CAMPO
-    // ==========================================
     
     // Error 1: Nombre de usuario
     WebElement errorUsuario = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".form-group:nth-child(1) > .field-error-msg")));
@@ -110,7 +105,5 @@ public class LoginCasoincorrectoCredencialesinvlidasTest {
     WebElement errorPassword = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".form-group:nth-child(3) > .field-error-msg")));
     assertThat(errorPassword.getText(), containsString("La contraseña es obligatoria."));
 
-    // NOTA: Se elimina la validación de ".auth-error-message" (errorGlobal) 
-    // debido a que la interfaz de usuario gestiona los mensajes únicamente de forma localizada por campo.
   }
 }

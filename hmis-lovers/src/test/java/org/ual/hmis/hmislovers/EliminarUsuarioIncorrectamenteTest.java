@@ -24,13 +24,12 @@ public class EliminarUsuarioIncorrectamenteTest {
   public void setUp() {
     // Browser selector
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = false; // Cambiado a 'boolean' primitivo por buena práctica
+    boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
 
     switch (browser) {
       case 0:  // Firefox
-        // NOTA: Si usas Selenium 4.11 o superior, puedes comentar la línea de abajo 
-        // y Selenium descargará el driver solo sin necesidad de la carpeta drivers/
-        System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
+        
+        //System.setProperty("webdriver.gecko.driver", "drivers/geckodriver.exe");
         
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
         if (headless) {
@@ -40,7 +39,7 @@ public class EliminarUsuarioIncorrectamenteTest {
         break;
 
       case 1: // Chrome
-        System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
+        //System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe");
         
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
         if (headless) {
@@ -84,9 +83,6 @@ public class EliminarUsuarioIncorrectamenteTest {
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
 
-    // ==========================================
-    // PASO OBLIGATORIO: INICIAR SESIÓN COMO ADMIN
-    // ==========================================
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
@@ -96,7 +92,5 @@ public class EliminarUsuarioIncorrectamenteTest {
     WebElement btnAdmin = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-admin-header > .material-icons")));
     btnAdmin.click();
     
-    // NOTA: Como tu test original terminaba aquí, se queda listo en este punto. 
-    // Si necesitas añadir aserciones o más clics de eliminación fallida sobre esta clase, puedes añadirlos abajo.
   }
 }
