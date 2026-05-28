@@ -79,7 +79,7 @@ public class EliminarUsuarioCorrectamenteTest {
   @Test
   public void eliminarUsuarioCorrectamente() {
     // 1 | open | Vamos a la raíz primero para forzar la pantalla de login que vimos en tu captura
-    driver.get("http://localhost:5173/");
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().maximize(); // Asegura pantalla completa para evitar vistas responsive móviles
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));

@@ -85,7 +85,7 @@ public class ModificarUsuariosIncorrectamenteTest {
     // Test name: ModificarUsuariosIncorrectamente
     // Step # | name | target | value
     // 1 | open | /admin | 
-	  driver.get("http://localhost:5173/");
+	  driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
 	    driver.manage().window().maximize();
 	    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
 	    

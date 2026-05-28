@@ -84,7 +84,7 @@ public class ListadoUsuariosIncorrectoTest {
   public void listadoUsuariosIncorrecto() {
     // Test name: ListadoUsuariosIncorrecto
     // Step # | name | target | value
-	  driver.get("http://localhost:5173/");
+	  driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
 	    driver.manage().window().maximize();
 	    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
 	    

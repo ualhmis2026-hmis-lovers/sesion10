@@ -85,7 +85,7 @@ public class RegistroCasoincorrectoNombreenusoTest {
     // Test name: Registro - Caso incorrecto (Nombre en uso)
     // Step # | name | target | value
     // 1 | open | / | 
-    driver.get("http://localhost:5173/");
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     // 2 | setWindowSize | 736x815 | 
     driver.manage().window().setSize(new Dimension(736, 815));
     // 3 | click | linkText=Regístrate aquí | 

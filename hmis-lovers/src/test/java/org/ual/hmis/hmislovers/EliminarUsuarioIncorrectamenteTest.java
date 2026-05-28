@@ -77,7 +77,7 @@ public class EliminarUsuarioIncorrectamenteTest {
   @Test
   public void eliminarUsuarioIncorrectamente() {
     // 1 | open | Vamos a la raíz de la aplicación local
-    driver.get("http://localhost:5173/");
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     // Maximizamos para garantizar que el diseño sea de escritorio y los elementos estén visibles
     driver.manage().window().maximize();
     

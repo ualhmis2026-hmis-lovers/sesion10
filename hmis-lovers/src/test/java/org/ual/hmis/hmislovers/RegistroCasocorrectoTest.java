@@ -85,7 +85,7 @@ public class RegistroCasocorrectoTest {
     // Test name: Registro - Caso correcto
     // Step # | name | target | value
     // 1 | open | / | 
-	  driver.get("http://localhost:5173/");
+	  driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
 	    driver.manage().window().maximize();
 	    
 	    // Generamos un sufijo único para que nunca se repita el usuario en la BD

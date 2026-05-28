@@ -78,7 +78,7 @@ public class RegistroCasoincorrectoCamposvacosTest {
   @Test
   public void registroCasoincorrectoCamposvacos() {
     // 1 | open | Ir a la aplicación
-    driver.get("http://localhost:5173/");
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().maximize();
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));

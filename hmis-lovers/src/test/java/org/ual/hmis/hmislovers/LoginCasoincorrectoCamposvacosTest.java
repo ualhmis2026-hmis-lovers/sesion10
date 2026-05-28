@@ -85,7 +85,7 @@ public class LoginCasoincorrectoCamposvacosTest {
     // Test name: Login - Caso incorrecto (Campos vacíos)
     // Step # | name | target | value
     // 1 | open | /login | 
-    driver.get("http://localhost:5173/login");
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     // 2 | setWindowSize | 736x815 | 
     driver.manage().window().setSize(new Dimension(736, 815));
     // 3 | click | css=.btn-auth-submit | 

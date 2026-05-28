@@ -77,7 +77,7 @@ public class CrearNuevoUsuarioIncorrectoTest {
   @Test
   public void crearNuevoUsuarioIncorrecto() {
     // 1 | open | Vamos a la raíz de la aplicación
-    driver.get("http://localhost:5173/");
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     // Maximizamos para garantizar que se renderice el diseño de escritorio completo
     driver.manage().window().maximize();
     
