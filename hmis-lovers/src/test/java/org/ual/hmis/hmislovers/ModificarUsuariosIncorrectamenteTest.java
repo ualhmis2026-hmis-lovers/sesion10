@@ -106,8 +106,11 @@ public class ModificarUsuariosIncorrectamenteTest {
     driver.findElement(By.id("admin-edit-username")).click();
     // 7 | click | css=.btn-submit-bar | 
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
+    // Esperar a que el overlay/modal desaparezca después de guardar
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".modal-overlay")));
     // 8 | click | css=.font-bold | 
-    driver.findElement(By.cssSelector(".font-bold")).click();
+    WebElement fontBoldElement = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".font-bold")));
+    fontBoldElement.click();
     // 9 | click | css=.font-bold | 
     driver.findElement(By.cssSelector(".font-bold")).click();
     // 10 | doubleClick | css=.font-bold | 
