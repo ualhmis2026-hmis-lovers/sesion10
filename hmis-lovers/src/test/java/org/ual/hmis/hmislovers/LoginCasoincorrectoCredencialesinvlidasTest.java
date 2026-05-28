@@ -25,7 +25,7 @@ public class LoginCasoincorrectoCredencialesinvlidasTest {
   @Before
   public void setUp() {
     // Browser selector
-    int browser = 0; // 0: firefox, 1: chrome
+    int browser = 1; // 0: firefox, 1: chrome
     boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
 
     switch (browser) {
