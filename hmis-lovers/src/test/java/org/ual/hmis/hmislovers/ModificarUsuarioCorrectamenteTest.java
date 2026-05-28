@@ -106,8 +106,12 @@ public class ModificarUsuarioCorrectamenteTest {
     // 7 | click | Guardamos los cambios pulsando el botón de envío
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
     
-    // Esperamos a que el elemento sea completamente clickeable (sin overlays)
-    // elementToBeClickable verifica que el elemento esté visible y sin interceptores
+    // Esperamos a que los elementos interceptores (label) desaparezcan
+    wait.until(ExpectedConditions.invisibilityOfAllElements(
+        driver.findElements(By.cssSelector("label"))
+    ));
+    
+    // Luego esperamos a que el elemento sea completamente clickeable
     WebElement levelPill = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".level-pill")));
 
     // 8 y 9 | click | Hacemos las interacciones sobre la píldora de nivel actualizada
