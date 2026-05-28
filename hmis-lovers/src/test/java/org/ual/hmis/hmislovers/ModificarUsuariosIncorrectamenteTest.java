@@ -34,8 +34,7 @@ public class ModificarUsuariosIncorrectamenteTest {
     // Browser selector
     int browser = 1; // 0: firefox, 1: chrome
     boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
-    
-    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+   
     
     switch (browser) {
       case 0:  // Firefox
