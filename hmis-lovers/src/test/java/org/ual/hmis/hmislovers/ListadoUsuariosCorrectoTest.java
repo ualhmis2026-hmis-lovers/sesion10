@@ -34,6 +34,7 @@ public class ListadoUsuariosCorrectoTest {
     // Browser selector
     int browser = 1; // 0: firefox, 1: chrome
     boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
+    driver.manage().deleteAllCookies(); // Borra sesiones previas
 
     switch (browser) {
       case 0:  // Firefox
@@ -86,7 +87,7 @@ public class ListadoUsuariosCorrectoTest {
     // Test name: ListadoUsuariosCorrecto
     // Step # | name | target | value
     // 1 | open | / | 
-	  driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+	  driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/login");
 	    driver.manage().window().maximize();
 	    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
 	    
