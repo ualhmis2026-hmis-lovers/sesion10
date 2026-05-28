@@ -24,6 +24,7 @@ import org.openqa.selenium.Keys;
 import java.util.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 public class ModificarUsuariosIncorrectamenteTest {
   private WebDriver driver;
   private Map<String, Object> vars;
@@ -33,7 +34,9 @@ public class ModificarUsuariosIncorrectamenteTest {
     // Browser selector
     int browser = 1; // 0: firefox, 1: chrome
     boolean headless = true; // Cambiado a 'boolean' primitivo por buena práctica
-
+    
+    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+    
     switch (browser) {
       case 0:  // Firefox
         
