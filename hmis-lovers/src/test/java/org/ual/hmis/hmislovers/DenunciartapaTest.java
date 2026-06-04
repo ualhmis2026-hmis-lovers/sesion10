@@ -22,6 +22,7 @@ public class DenunciartapaTest {
 
   @Before
   public void setUp() {
+    // Selector de navegador uniforme para toda la suite de pruebas
     int browser = 0; // 0: firefox, 1: chrome
     boolean headless = true; // Forzado a true para evitar fallos de pantalla en Jenkins
 
@@ -71,7 +72,8 @@ public class DenunciartapaTest {
     driver.manage().window().maximize();
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
-    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
+    // Aumentamos a 45 segundos para mitigar la lentitud extrema de Azure Free
+    WebDriverWait waitLargoAzure = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
     
     // Login
     WebElement inputUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username")));
@@ -89,7 +91,6 @@ public class DenunciartapaTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarDenuncia);
     
-    // CORRECCIÓN: Foco/click explícito en la dirección antes de escribir
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
     inputBarDir.sendKeys("direccion denuncia 123");
@@ -99,8 +100,16 @@ public class DenunciartapaTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
+    // ESTABILIZACIÓN PARA AZURE LENTO: Pausa de seguridad + Refresco de página
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
+    
     // Seleccionar bar
-    WebElement barCard = waitLargo.until(
+    WebElement barCard = waitLargoAzure.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
     );
     barCard.click();
@@ -116,7 +125,6 @@ public class DenunciartapaTest {
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".menu-item-name-input"))).sendKeys("tapa a denunciar");
     driver.findElement(By.cssSelector(".menu-item-price-input")).sendKeys("2");
     
-    // CORRECCIÓN: Esperas explícitas para botones del modal de creación de tapa
     WebElement btnNeg = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".neg")));
     btnNeg.click();
     
