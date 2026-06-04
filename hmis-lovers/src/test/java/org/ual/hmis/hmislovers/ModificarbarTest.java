@@ -64,8 +64,8 @@ public class ModificarbarTest {
   }
 
   @Test
-  public void modificarbar() {
-    try { Thread.sleep(3000); } catch (Exception e) {}
+  public void modificarbar() throws InterruptedException {
+    Thread.sleep(3000);
 
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
@@ -77,7 +77,6 @@ public class ModificarbarTest {
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
     
-    // BUCLE DE PERSISTENCIA ROBUSTO: Manejo anti-caídas de base de datos distribuidas
     String nombreBarOriginal = "";
     WebElement barCard = null;
     int intentos = 0;
@@ -94,17 +93,27 @@ public class ModificarbarTest {
             WebElement inputBarNameNuevo = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
             inputBarNameNuevo.clear();
             inputBarNameNuevo.sendKeys(nombreBarOriginal);
+            Thread.sleep(300);
             
             WebElement inputBarDirNuevo = driver.findElement(By.id("new-bar-dir"));
             inputBarDirNuevo.clear();
             inputBarDirNuevo.sendKeys("direccion original 123");
             Thread.sleep(300);
             
-            WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
-            js.executeScript("arguments[0].click();", btnSubmitBar);
+            // CORRECCIÓN: Scroll explícito y click nativo sobre el botón Guardar
+            WebElement btnSubmitBar = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".btn-submit-bar")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmitBar);
+            Thread.sleep(300);
             
+            try {
+                btnSubmitBar.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", btnSubmitBar);
+            }
+            
+            // Esperar que el modal desaparezca confirmando que se procesó la petición
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-            Thread.sleep(2000);
+            Thread.sleep(3000); // Tiempo de persistencia en Azure
             driver.navigate().refresh();
             
             WebDriverWait waitIntento = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
@@ -114,6 +123,7 @@ public class ModificarbarTest {
         } catch (Exception e) {
             barCard = null;
             driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+            Thread.sleep(1500);
         }
     }
     
@@ -121,9 +131,9 @@ public class ModificarbarTest {
         fail("El backend de Azure no procesó la inserción del bar tras 3 reintentos consecutivos.");
     }
     
-    // Seleccionar de forma limpia y realizar la edición
+    // Seleccionar y realizar la edición
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
-    try { Thread.sleep(500); } catch (Exception e) {}
+    Thread.sleep(500);
     try { barCard.click(); } catch (Exception e) { js.executeScript("arguments[0].click();", barCard); }
     
     WebElement btnEdit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".edit")));
@@ -133,35 +143,38 @@ public class ModificarbarTest {
     inputBarDir.click();
     inputBarDir.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarDir.sendKeys("alli o no");
+    Thread.sleep(200);
     
     String nombreBarModificado = "casa angel si " + UUID.randomUUID().toString().substring(0, 6);
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
     inputBarName.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarName.sendKeys(nombreBarModificado);
-    try {
-		Thread.sleep(200);
-	} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+    Thread.sleep(300);
     
-    WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
-    js.executeScript("arguments[0].click();", btnSubmit);
+    // Guardar cambios modificados con el mismo proceso robusto
+    WebElement btnSubmit = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".btn-submit-bar")));
+    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmit);
+    Thread.sleep(300);
+    try {
+        btnSubmit.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", btnSubmit);
+    }
     
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
     
-    try { Thread.sleep(2000); } catch (Exception e) {}
+    Thread.sleep(3000);
     driver.navigate().refresh();
     
     WebElement barCardAgain = wait.until(
         ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarModificado + "')]"))
     );
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCardAgain);
-    try { Thread.sleep(500); } catch (Exception e) {}
+    Thread.sleep(500);
     try { barCardAgain.click(); } catch (Exception e) { js.executeScript("arguments[0].click();", barCardAgain); }
     
     WebElement txtTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div:nth-child(2) > h2")));
