@@ -64,7 +64,6 @@ public class CrearbarTest {
 
   @Test
   public void crearbar() {
-    // Generación dinámica única para evitar colisiones en la DB remota
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreNuevoBar = "casa angel " + sufijoAleatorio;
 
@@ -72,7 +71,7 @@ public class CrearbarTest {
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
-    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
+    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
 
     // Login previo
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
@@ -92,9 +91,16 @@ public class CrearbarTest {
 
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
 
-    // Esperar a que el modal overlay de creación desaparezca por completo
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
+
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
 
     // Validar de forma dinámica que el bar aparece correctamente en la vista
     WebElement tarjetaCreada = waitLargo.until(
@@ -103,7 +109,6 @@ public class CrearbarTest {
     
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", tarjetaCreada);
     
-    // Aserción final del texto de la tarjeta
     assertTrue(tarjetaCreada.isDisplayed());
     assertThat(tarjetaCreada.getText(), is(nombreNuevoBar));
   }
