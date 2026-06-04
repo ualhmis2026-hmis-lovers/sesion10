@@ -70,11 +70,16 @@ public class DenunciartapaTest {
 
   @Test
   public void denunciartapa() {
-    // 1. Abrir la página de Login
-    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/login");
+    // Generar nombre único para el bar de esta prueba
+    String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
+    String nombreBarDenuncia = "bar denuncia " + sufijoAleatorio;
+    
+    // 1. Abrir la aplicación
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().maximize();
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
     
     // 2. Realizar Login previo
     WebElement inputUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username")));
@@ -84,8 +89,24 @@ public class DenunciartapaTest {
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
     
-    // 3. Esperar a que cargue la lista de bares y clicar en el primer bar disponible
-    WebElement barCard = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".bar-card-body")));
+    // 3. Crear un bar propio para esta prueba
+    WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
+    btnAddBar.click();
+    
+    WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
+    inputBarName.click();
+    inputBarName.sendKeys(nombreBarDenuncia);
+    
+    driver.findElement(By.id("new-bar-dir")).sendKeys("direccion denuncia 123");
+    driver.findElement(By.cssSelector(".btn-submit-bar")).click();
+    
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
+    
+    // 4. Esperar a que cargue la lista de bares y clicar en el bar creado
+    WebElement barCard = waitLargo.until(
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarDenuncia + "')]"))
+    );
     barCard.click();
     
     // 4. Esperar a que cargue la carta y hacer clic en la primera tapa disponible

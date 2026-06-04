@@ -103,6 +103,10 @@ public class ModificarbarTest {
     
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
     
+    // Esperar a que el modal de creación se cierre antes de buscar la tarjeta
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
+    
     // 4. SELECCIONAR EL BAR CREADO USANDO XPATH DINÁMICO
     WebElement barCard = waitLargoBares.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarOriginal + "')]"))

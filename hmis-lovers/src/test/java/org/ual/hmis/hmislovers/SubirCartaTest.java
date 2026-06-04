@@ -99,10 +99,7 @@ public class SubirCartaTest {
 
     // Esperar a que el modal overlay se cierre por completo
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-    
-    // Forzar sincronización ligera de la UI
-    try { Thread.sleep(1000); } catch (Exception e) {}
-    driver.navigate().refresh();
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
     // 4. Buscar la tarjeta del bar que acabamos de crear de forma dinámica
     WebElement barCard = waitLargo.until(

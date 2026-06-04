@@ -94,10 +94,7 @@ public class CrearbarTest {
 
     // Esperar a que el modal overlay de creación desaparezca por completo
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-    
-    // Forzar refresco ligero o pequeña pausa para garantizar sincronía en Firefox Headless
-    try { Thread.sleep(1000); } catch (Exception e) {}
-    driver.navigate().refresh();
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
     // Validar de forma dinámica que el bar aparece correctamente en la vista
     WebElement tarjetaCreada = waitLargo.until(
