@@ -101,6 +101,20 @@ public class SubirCartaTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
+    // Recargar la página para asegurar que la lista refleje el nuevo bar
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+
+    // Si la recarga pierde la sesión, volvemos a hacer login
+    try {
+        if (driver.findElement(By.id("login-username")).isDisplayed()) {
+            driver.findElement(By.id("login-username")).sendKeys("admin");
+            driver.findElement(By.id("login-password")).sendKeys("1234");
+            driver.findElement(By.cssSelector(".btn-auth-submit")).click();
+        }
+    } catch (Exception e) {
+        // Ya estamos logueados, continuar
+    }
+
     // 4. Buscar la tarjeta del bar que acabamos de crear de forma dinámica
     WebElement barCard = waitLargo.until(
         ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarCarta + "')]"))
