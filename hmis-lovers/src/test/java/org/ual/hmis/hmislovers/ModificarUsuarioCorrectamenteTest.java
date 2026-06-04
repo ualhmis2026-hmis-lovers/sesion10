@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
 import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.is;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -17,7 +16,6 @@ import java.util.*;
 
 public class ModificarUsuarioCorrectamenteTest {
   private WebDriver driver;
-  private Map<String, Object> vars;
   private JavascriptExecutor js;
 
   @Before
@@ -28,83 +26,66 @@ public class ModificarUsuarioCorrectamenteTest {
     switch (browser) {
       case 0: 
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
-        if (headless) {
-          firefoxOptions.addArguments("--headless");
-        }
-        // Argumentos CLI nativos para asegurar la resolución de escritorio en Firefox
+        if (headless) firefoxOptions.addArguments("--headless");
         firefoxOptions.addArguments("-width", "1920");
         firefoxOptions.addArguments("-height", "1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
         break;
       case 1: 
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
-        if (headless) {
-          chromeOptions.addArguments("--headless=new");
-        }
-        chromeOptions.addArguments("--start-maximized");
+        if (headless) chromeOptions.addArguments("--headless=new");
         chromeOptions.addArguments("window-size=1920,1080");
         driver = new org.openqa.selenium.chrome.ChromeDriver(chromeOptions);
         break;
-      default:
-        fail("Please select a browser");
-        break;
     }
-    
     driver.manage().window().setSize(new Dimension(1920, 1080));
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
     js = (JavascriptExecutor) driver;
-    vars = new HashMap<String, Object>();
   }
 
   @After
   public void tearDown() {
-    if (driver != null) {
-      driver.quit();
-    }
+    if (driver != null) driver.quit();
   }
 
   @Test
   public void modificarUsuarioCorrectamente() {
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-    driver.manage().window().maximize();
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
 
-    // 1. Login previo como Administrador
-    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
+    // 1. Proceso de Login masivo
+    WebElement userInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username")));
+    userInput.sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
 
-    // 2. Navegar a la sección de usuarios (Garantizado usando JS Click en caso de menú colapsado)
-    By userMenuSelector = By.cssSelector(".btn-users-management, [href*='user'], a[href*='users']");
+    // PUNTO CRÍTICO: Esperar a que el formulario de login se oculte (garantiza éxito del login asíncrono)
+    wait.until(ExpectedConditions.invisibilityOf(userInput));
+
+    // 2. Acceder de forma segura al módulo de usuarios utilizando una ruta XPath limpia y directa
+    By userMenuSelector = By.xpath("//a[contains(@href, 'user') or contains(text(), 'User')]");
     WebElement btnUsuarios = wait.until(ExpectedConditions.presenceOfElementLocated(userMenuSelector));
     
     try {
-        // Intento de clic estándar en flujo normal de escritorio
         wait.until(ExpectedConditions.elementToBeClickable(userMenuSelector)).click();
     } catch (Exception e) {
-        // Fallback robusto por JS si el elemento está oculto tras un menú responsive de Firefox Headless
         js.executeScript("arguments[0].click();", btnUsuarios);
     }
 
-    // 3. Seleccionar el usuario a modificar
+    // 3. Modificación del usuario
     WebElement userEditBtn = wait.until(ExpectedConditions.elementToBeClickable(
         By.xpath("//td[contains(text(), 'admin')]/following-sibling::td//button[contains(@class, 'edit')]")
     ));
     userEditBtn.click();
 
-    // 4. Modificar datos del formulario
     WebElement inputPassword = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("edit-user-password")));
     inputPassword.click();
     inputPassword.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
     inputPassword.sendKeys("1234");
 
-    // 5. Guardar cambios
     driver.findElement(By.cssSelector(".btn-submit-edit-user")).click();
-
-    // Esperar cierre asíncrono de la interfaz de edición
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("edit-user-password")));
 
-    // 6. Validación final
     WebElement txtUserChecked = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), 'admin')]")));
     assertTrue(txtUserChecked.isDisplayed());
   }
