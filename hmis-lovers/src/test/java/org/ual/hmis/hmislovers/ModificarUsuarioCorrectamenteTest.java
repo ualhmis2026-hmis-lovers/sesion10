@@ -26,17 +26,15 @@ public class ModificarUsuarioCorrectamenteTest {
     boolean headless = true; 
 
     switch (browser) {
-      case 0: // FIREFOX CORREGIDO
+      case 0: // FIREFOX BLINDADO
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
         if (headless) {
           firefoxOptions.addArguments("--headless");
         }
-        // Forzamos ventana grande en los argumentos de Firefox para evitar menús colapsados en responsive
-        firefoxOptions.addArguments("--width=1920");
-        firefoxOptions.addArguments("--height=1080");
+        // Sintaxis correcta para forzar tamaño de ventana en Firefox Headless
+        firefoxOptions.addArguments("-window-size", "1920,1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
         break;
-        
       case 1: // CHROME
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
         if (headless) {
@@ -46,13 +44,12 @@ public class ModificarUsuarioCorrectamenteTest {
         chromeOptions.addArguments("window-size=1920,1080");
         driver = new org.openqa.selenium.chrome.ChromeDriver(chromeOptions);
         break;
-        
       default:
         fail("Please select a browser");
         break;
     }
     
-    // Aseguramos de manera global el tamaño de la ventana por API de Selenium
+    // Forzado explícito mediante la API de ventanas de Selenium (Aplica a ambos navegadores)
     driver.manage().window().setSize(new Dimension(1920, 1080));
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
     js = (JavascriptExecutor) driver;
@@ -69,8 +66,6 @@ public class ModificarUsuarioCorrectamenteTest {
   @Test
   public void modificarUsuarioCorrectamente() {
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-    
-    // Doble aseguramiento de ventana maximizada post-carga de URL
     driver.manage().window().maximize();
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
 
@@ -79,7 +74,7 @@ public class ModificarUsuarioCorrectamenteTest {
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
 
-    // 2. Navegar a la sección de usuarios (Ahora visible al no estar en modo móvil)
+    // 2. Navegar a la sección de usuarios (Garantizado con ventana de escritorio 1920x1080)
     WebElement btnUsuarios = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-users-management, [href*='user']")));
     btnUsuarios.click();
 
@@ -98,7 +93,7 @@ public class ModificarUsuarioCorrectamenteTest {
     // 5. Guardar cambios
     driver.findElement(By.cssSelector(".btn-submit-edit-user")).click();
 
-    // Esperar cierre del modal asíncrono
+    // Esperar cierre asíncrono de la interfaz de edición
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("edit-user-password")));
 
     // 6. Validación final
