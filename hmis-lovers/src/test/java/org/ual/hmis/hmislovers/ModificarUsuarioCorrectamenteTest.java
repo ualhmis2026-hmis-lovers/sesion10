@@ -63,20 +63,17 @@ public class ModificarUsuarioCorrectamenteTest {
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    // [PASO EXTRA] LOGIN OBLIGATORIO PARA ENTORNO LIMPIO (JENKINS)
+    // LOGIN OBLIGATORIO PARA ENTORNO LIMPIO
     try {
-        // Si pide login, introducimos las credenciales de administrador
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
         driver.findElement(By.id("login-password")).sendKeys("1234");
         driver.findElement(By.cssSelector(".btn-auth-submit")).click();
-        // Esperamos un instante a que procese la sesión
         Thread.sleep(2000);
     } catch (Exception e) {
-        // Si los IDs de login cambian o ya está logueado por algún motivo, continúa sin romper
-        System.out.println("Login no requerido o estructura diferente. Continuando al panel...");
+        System.out.println("Login no requerido o estructura diferente. Continuando...");
     }
     
-    // 3 | click | Espera y hace clic en el botón admin del header
+    // 3 | click | Botón del panel de administración
     WebElement btnAdminHeader = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-admin-header > .material-icons")));
     btnAdminHeader.click();
     
@@ -88,23 +85,31 @@ public class ModificarUsuarioCorrectamenteTest {
       builder.moveToElement(bodyElement, 0, 0).perform();
     } catch (Exception e) {}
     
-    // 6 | click | Clic en el botón 'edit' de la fila 5
+    // 6 | click | Clic en 'edit' de la fila 5
     WebElement btnEditRow = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("tr:nth-child(5) .edit")));
     btnEditRow.click();
     
-    // 7 & 8 | click & type | Modificar el input
+    // 7 & 8 | click & type | Modificar input username
     WebElement inputUsername = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("admin-edit-username")));
     inputUsername.click();
     inputUsername.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
     inputUsername.sendKeys("pepejuan370123");
     
-    // 9 | click | Guardar formulario
+    // 9 | click | Guardar cambios
     WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     btnSubmitBar.click();
     
-    // 10 & 11 | click & assertText | Comprobar cambios
-    WebElement txtResult = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".admin-card:nth-child(1) tr:nth-child(5) > .font-bold")));
+    // [MEJORA CRÍTICA]: Esperar a que el modal overlay desaparezca de la pantalla por completo
+    try {
+      wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("modal-overlay")));
+    } catch (Exception e) {
+      System.out.println("El modal no apareció o tardó en irse, intentando continuar...");
+    }
+    
+    // 10 & 11 | click & assertText | Comprobar fila modificada
+    WebElement txtResult = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".admin-card:nth-child(1) tr:nth-child(5) > .font-bold")));
     txtResult.click(); 
+    
     assertThat(txtResult.getText(), is("pepejuan370123"));
   }
 }
