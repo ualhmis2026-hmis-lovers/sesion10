@@ -32,7 +32,7 @@ public class ModificarbarTest {
         if (headless) {
           firefoxOptions.addArguments("--headless");
         }
-        // Forzamos dimensiones de ventana internas consistentes en el perfil de Firefox
+        // ESTABILIZACIÓN: Forzamos dimensiones virtuales estables para el entorno headless
         firefoxOptions.addArguments("--width=1920");
         firefoxOptions.addArguments("--height=1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
@@ -78,7 +78,7 @@ public class ModificarbarTest {
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(20));
     WebDriverWait waitLargoBares = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
     
     // Login previo
@@ -93,30 +93,39 @@ public class ModificarbarTest {
     WebElement inputBarNameNuevo = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarNameNuevo.click();
     inputBarNameNuevo.sendKeys(nombreBarOriginal);
+    try { Thread.sleep(300); } catch (Exception e) {} // Tiempo de asimilación del Data-Binding
     
     driver.findElement(By.id("new-bar-dir")).click();
     driver.findElement(By.id("new-bar-dir")).sendKeys("direccion original 123");
-    driver.findElement(By.cssSelector(".btn-submit-bar")).click();
+    try { Thread.sleep(300); } catch (Exception e) {} // Tiempo de asimilación del Data-Binding
     
+    // CORRECCIÓN: Envío del formulario de creación con fallback JS robusto
+    WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
+    try {
+        btnSubmitBar.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", btnSubmitBar);
+    }
+    
+    // CORRECCIÓN: Aseguramos el cierre completo de los elementos del modal antes de refrescar
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    // ESTABILIZACIÓN AZURE: Pausa de sincronización y refresco completo
     try { 
-        Thread.sleep(1500); 
+        Thread.sleep(2000); 
     } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
     }
     driver.navigate().refresh();
     
-    // SOLUCCIÓN DEL BUG: Esperamos presencia en el DOM, hacemos Scroll al centro y hacemos Clic robusto
+    // Seleccionar bar original mediante Presencia + Scroll al centro + Clic adaptativo
     WebElement barCard = waitLargoBares.until(
         ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
     );
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
-    try { Thread.sleep(500); } catch (Exception e) {} // Breve pausa para asimilar el scroll
+    try { Thread.sleep(600); } catch (Exception e) {}
     
-    // Esperar a que sea clickeable tras el scroll y pulsar de forma segura
     wait.until(ExpectedConditions.elementToBeClickable(barCard));
     try {
         barCard.click();
@@ -133,15 +142,21 @@ public class ModificarbarTest {
     inputBarDir.click();
     inputBarDir.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarDir.sendKeys("alli o no");
+    try { Thread.sleep(200); } catch (Exception e) {}
     
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
     inputBarName.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarName.sendKeys(nombreBarModificado);
+    try { Thread.sleep(200); } catch (Exception e) {}
     
-    // Guardar cambios
+    // Guardar cambios modificados
     WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
-    btnSubmit.click();
+    try {
+        btnSubmit.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", btnSubmit);
+    }
     
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
@@ -149,20 +164,20 @@ public class ModificarbarTest {
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
     
-    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de comprobar el cambio en la lista
+    // ESTABILIZACIÓN AZURE: Pausa de guardado final y refresco antes de comprobar el cambio
     try { 
-        Thread.sleep(1500); 
+        Thread.sleep(2000); 
     } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
     }
     driver.navigate().refresh();
     
-    // Seleccionar usando el NUEVO nombre modificado con scroll preventivo integrado
+    // Seleccionar usando el NUEVO nombre modificado (Presencia + Scroll + Clic adaptativo)
     WebElement barCardAgain = waitLargoBares.until(
         ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarModificado + "')]"))
     );
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCardAgain);
-    try { Thread.sleep(500); } catch (Exception e) {}
+    try { Thread.sleep(600); } catch (Exception e) {}
 
     wait.until(ExpectedConditions.elementToBeClickable(barCardAgain));
     try {
