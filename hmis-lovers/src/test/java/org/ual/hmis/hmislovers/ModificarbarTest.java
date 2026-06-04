@@ -82,8 +82,8 @@ public class ModificarbarTest {
     driver.manage().window().maximize();
     
     // Esperas estándares y largas para absorber latencias de red
-    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
-    WebDriverWait waitLargoBares = new WebDriverWait(driver, java.time.Duration.ofSeconds(25));
+    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+    WebDriverWait waitLargoBares = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
     
     // 2. LOGIN PREVIO (Requisito para poder gestionar elementos de administración)
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
@@ -99,7 +99,7 @@ public class ModificarbarTest {
     inputBarNameNuevo.sendKeys(nombreBarOriginal);
     
     driver.findElement(By.id("new-bar-dir")).click();
-    driver.findElement(By.id("new-bar-dir")).sendKeys("alli");
+    driver.findElement(By.id("new-bar-dir")).sendKeys("direccion original 123");
     
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
     
