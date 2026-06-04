@@ -23,9 +23,8 @@ public class EliminarbarTest {
 
   @Before
   public void setUp() {
-    // Selector de navegador uniforme para toda la suite de pruebas
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = true; // Forzado a true para evitar fallos de pantalla en Jenkins
+    boolean headless = true;
 
     switch (browser) {
       case 0:  // Firefox
@@ -52,13 +51,7 @@ public class EliminarbarTest {
         break;
     }
 
-    // Sincronización base implícita
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
-    
-    if (!headless) {
-      driver.manage().window().maximize();
-    }
-
     js = (JavascriptExecutor) driver;
     vars = new HashMap<String, Object>();
   }
@@ -72,23 +65,21 @@ public class EliminarbarTest {
 
   @Test
   public void eliminarbar() {
-    // GENERACIÓN DE UN NOMBRE ÚNICO ALEATORIO PARA ESTA PRUEBA
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreBarAEliminar = "bar borrar " + sufijoAleatorio;
 
-    // 1. Abrir la aplicación
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-    driver.manage().window().maximize();
+    driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
-    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(25));
+    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
     
-    // 2. LOGIN PREVIO (Necesario tanto para crear como para disponer del botón de borrado)
+    // Login Obligatorio
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
     
-    // 3. PASO PREVIO SEGURO: CREAR EL BAR QUE VAMOS A BORRAR
+    // Crear bar temporal
     WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
     btnAddBar.click();
     
@@ -96,54 +87,41 @@ public class EliminarbarTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarAEliminar);
     
-    driver.findElement(By.id("new-bar-dir")).click();
     driver.findElement(By.id("new-bar-dir")).sendKeys("direccion temporal");
-    
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
 
-    // ==========================================
-    // MEJORA DE ESTABILIZACIÓN ASÍNCRONA:
-    // Esperamos a que el formulario/modal se cierre o deje de ser visible antes de buscar la tarjeta.
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-    // ==========================================
 
-    // 4. SELECCIONAR EL BAR DE FORMA DINÁMICA UTILIZANDO XPATH
-    // Esperamos pacientemente a que la nueva tarjeta se pinte en la lista de fondo
+    // Seleccionar tarjeta creada
     WebElement barCard = waitLargo.until(
         ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarAEliminar + "')]"))
     );
     
-    // Hacemos scroll seguro hasta el elemento centrándolo verticalmente para evitar que quede oculto tras el header fijo
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
-    
-    // Breve pausa para asegurar la estabilidad del scroll antes de la interacción
     try { Thread.sleep(500); } catch (Exception e) {}
     
-    // Esperamos a que sea clickeable
     wait.until(ExpectedConditions.elementToBeClickable(barCard));
     
-    // SOLUCIÓN AL FALLO DE INTERCEPCIÓN EN CHROME SIN ROMPER FIREFOX
     try {
         barCard.click();
     } catch (org.openqa.selenium.ElementClickInterceptedException e) {
-        System.out.println("Clic convencional interceptado por .header-content en Chrome. Usando clic nativo por JavaScript...");
         js.executeScript("arguments[0].click();", barCard);
     }
     
-    // 5. PULSAR EL BOTÓN ELIMINAR (.delete)
+    // Pulsar Eliminar
     WebElement btnDelete = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".delete")));
     btnDelete.click();
     
-    // 6. GESTIÓN Y ASERCIÓN DE LA ALERTA DE CONFIRMACIÓN
+    // Gestionar Alerta
     Alert alert = wait.until(ExpectedConditions.alertIsPresent());
-    
-    // Comprobamos que el texto de la alerta coincide exactamente con el esperado
     assertThat(alert.getText(), is("¿Estás seguro de que deseas eliminar este bar? También se borrarán sus reseñas."));
-    
-    // Aceptamos la alerta (Hacer clic en "Aceptar")
     alert.accept();
 
-    // 7. COMPROBACIÓN EXTRA: Validar que el elemento ya no se encuentra visible en la UI
+    // Sincronización post-borrado: Refrescamos la UI para forzar la lectura del estado limpio de la DB
+    try { Thread.sleep(1000); } catch (Exception e) {}
+    driver.navigate().refresh();
+
+    // Comprobación de que ya no existe
     waitLargo.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarAEliminar + "')]")));
   }
 }

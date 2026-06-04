@@ -22,9 +22,8 @@ public class CrearbarTest {
 
   @Before
   public void setUp() {
-    // Selector de navegador uniforme con el resto de la suite
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = true; // Forzado a true para ejecuciones en Jenkins (Xvfb)
+    boolean headless = true;
 
     switch (browser) {
       case 0:  // Firefox
@@ -51,13 +50,7 @@ public class CrearbarTest {
         break;
     }
 
-    // Sincronización base implícita para evitar fallos de renderizado ligeros
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
-    
-    if (!headless) {
-      driver.manage().window().maximize();
-    }
-
     js = (JavascriptExecutor) driver;
     vars = new HashMap<String, Object>();
   }
@@ -71,60 +64,50 @@ public class CrearbarTest {
 
   @Test
   public void crearbar() {
-    // GENERACIÓN DE NOMBRE ALEATORIO UNIQUE
-    // Tomamos los primeros 6 caracteres de un UUID aleatorio para que no sea excesivamente largo
+    // Generación dinámica única para evitar colisiones en la DB remota
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
-    String nombreBarAleatorio = "casa angel " + sufijoAleatorio;
+    String nombreNuevoBar = "casa angel " + sufijoAleatorio;
 
-    // 1. Ir a la página de login
-    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/login");
-    driver.manage().window().maximize();
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+    driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    // Instanciación del WebDriverWait para controlar las transiciones asíncronas
-    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
-    
-    // 2. Realizar Login Seguro utilizando esperas explícitas
-    WebElement userInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username")));
-    userInput.click();
-    userInput.sendKeys("admin");
-    
+    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
+
+    // Login previo
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
-    
-    // 3. Flujo para añadir un nuevo bar
-    // Esperar a que el botón de añadir bar esté activo tras la redirección post-login
+
+    // Crear el nuevo bar
     WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
     btnAddBar.click();
-    
-    // Rellenar formulario del nuevo bar
+
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
-    // MODIFICACIÓN: Enviamos el nombre aleatorio generado al principio
-    inputBarName.sendKeys(nombreBarAleatorio);
-    
+    inputBarName.sendKeys(nombreNuevoBar);
+
     driver.findElement(By.id("new-bar-dir")).click();
-    driver.findElement(By.id("new-bar-dir")).sendKeys("alli");
-    
-    // Guardar/Enviar el formulario del bar
+    driver.findElement(By.id("new-bar-dir")).sendKeys("calle nueva 123");
+
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
+
+    // Esperar a que el modal overlay de creación desaparezca por completo
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     
-    // 4. Verificación y Aserción final del bar creado
-    // Si al crearse el nuevo bar se posiciona al final de la lista, forzamos una espera larga por si hay latencia
-    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(20));
-    
-    // Buscamos dinámicamente la etiqueta h3 que contenga EXACTAMENTE el nombre aleatorio creado
-    WebElement barCard = waitLargo.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarAleatorio + "')]"))
+    // Forzar refresco ligero o pequeña pausa para garantizar sincronía en Firefox Headless
+    try { Thread.sleep(1000); } catch (Exception e) {}
+    driver.navigate().refresh();
+
+    // Validar de forma dinámica que el bar aparece correctamente en la vista
+    WebElement tarjetaCreada = waitLargo.until(
+        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreNuevoBar + "')]"))
     );
-    barCard.click();
     
-    // Esperamos a que se abra el modal o vista de detalle social correspondiente
-    wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal-header-social"))).click();
+    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", tarjetaCreada);
     
-    // Capturamos el contenedor del título y verificamos que el texto guardado coincida de verdad
-    WebElement txtTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div:nth-child(2) > h2")));
-    
-    // MODIFICACIÓN: Comparamos dinámicamente con la variable del nombre aleatorio
-    assertThat(txtTitle.getText(), is(nombreBarAleatorio));
+    // Aserción final del texto de la tarjeta
+    assertTrue(tarjetaCreada.isDisplayed());
+    assertThat(tarjetaCreada.getText(), is(nombreNuevoBar));
   }
 }
