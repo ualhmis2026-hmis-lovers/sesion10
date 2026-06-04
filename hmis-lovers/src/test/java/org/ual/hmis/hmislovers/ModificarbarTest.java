@@ -139,7 +139,12 @@ public class ModificarbarTest {
     inputBarName.click();
     inputBarName.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarName.sendKeys(nombreBarModificado);
-    Thread.sleep(200);
+    try {
+		Thread.sleep(200);
+	} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
     
     WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     js.executeScript("arguments[0].click();", btnSubmit);
