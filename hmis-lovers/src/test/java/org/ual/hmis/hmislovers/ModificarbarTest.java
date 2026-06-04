@@ -130,7 +130,9 @@ public class ModificarbarTest {
     
     // 8. CERRAR MODAL (primero cerramos el modal para que la lista de bares se renderice con los cambios)
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
-    btnCloseModal.click();
+    
+    // Clic ejecutado por JavaScript para evitar interferencias con el modal-overlay
+    js.executeScript("arguments[0].click();", btnCloseModal);
     
     // Volvemos a hacer clic en el bar usando el NUEVO nombre modificado para comprobar la persistencia de la vista detallada
     WebElement barCardUpdated = waitLargoBares.until(
