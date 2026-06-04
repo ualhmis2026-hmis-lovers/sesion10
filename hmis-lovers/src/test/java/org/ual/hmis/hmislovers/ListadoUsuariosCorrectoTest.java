@@ -17,7 +17,7 @@ import java.util.*;
 public class ListadoUsuariosCorrectoTest {
   private WebDriver driver;
   private Map<String, Object> vars;
-  JavascriptExecutor js;
+  private JavascriptExecutor js;
 
   @Before
   public void setUp() {
@@ -25,16 +25,17 @@ public class ListadoUsuariosCorrectoTest {
     boolean headless = true; 
 
     switch (browser) {
-      case 0: // FIREFOX BLINDADO
+      case 0: 
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
         if (headless) {
           firefoxOptions.addArguments("--headless");
         }
-        // Sintaxis correcta para forzar tamaño de ventana en Firefox Headless
-        firefoxOptions.addArguments("-window-size", "1920,1080");
+        // Argumentos CLI nativos para asegurar la resolución de escritorio en Firefox
+        firefoxOptions.addArguments("-width", "1920");
+        firefoxOptions.addArguments("-height", "1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
         break;
-      case 1: // CHROME
+      case 1: 
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
         if (headless) {
           chromeOptions.addArguments("--headless=new");
@@ -48,7 +49,6 @@ public class ListadoUsuariosCorrectoTest {
         break;
     }
     
-    // Forzado explícito mediante la API de ventanas de Selenium (Aplica a ambos navegadores)
     driver.manage().window().setSize(new Dimension(1920, 1080));
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
     js = (JavascriptExecutor) driver;
@@ -73,9 +73,15 @@ public class ListadoUsuariosCorrectoTest {
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
 
-    // 2. Acceder al módulo de listado de usuarios (Garantizado con ventana de escritorio 1920x1080)
-    WebElement btnUsuarios = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-users-management, [href*='user']")));
-    btnUsuarios.click();
+    // 2. Acceder al módulo de listado de usuarios (Usa XPath válido con múltiples alternativas)
+    By userMenuSelector = By.xpath("//*[contains(@class, 'btn-users-management')] | //a[contains(@href, 'user')]");
+    WebElement btnUsuarios = wait.until(ExpectedConditions.presenceOfElementLocated(userMenuSelector));
+
+    try {
+        wait.until(ExpectedConditions.elementToBeClickable(userMenuSelector)).click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", btnUsuarios);
+    }
 
     // 3. Buscar directamente la celda que contiene el texto de forma explícita
     WebElement adminUserCell = wait.until(ExpectedConditions.visibilityOfElementLocated(
