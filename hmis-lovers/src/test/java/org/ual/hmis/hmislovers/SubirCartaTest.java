@@ -72,7 +72,7 @@ public class SubirCartaTest {
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
-    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
+    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
 
     // Login previo
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
@@ -87,7 +87,6 @@ public class SubirCartaTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarCarta);
 
-    // CORRECCIÓN: Foco/click explícito en la dirección antes de escribir
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
     inputBarDir.sendKeys("direccion carta 123");
@@ -96,6 +95,14 @@ public class SubirCartaTest {
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
+
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
 
     // Buscar tarjeta
     WebElement barCard = waitLargo.until(

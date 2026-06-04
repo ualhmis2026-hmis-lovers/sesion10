@@ -23,7 +23,6 @@ public class ModificarbarTest {
 
   @Before
   public void setUp() {
-    // Selector de navegador uniforme para toda la suite de pruebas
     int browser = 0; // 0: firefox, 1: chrome
     boolean headless = true; // Forzado a true para evitar fallos de pantalla en Jenkins
 
@@ -52,13 +51,7 @@ public class ModificarbarTest {
         break;
     }
 
-    // Sincronización base implícita
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
-    
-    if (!headless) {
-      driver.manage().window().maximize();
-    }
-
     js = (JavascriptExecutor) driver;
     vars = new HashMap<String, Object>();
   }
@@ -72,25 +65,22 @@ public class ModificarbarTest {
 
   @Test
   public void modificarbar() {
-    // GENERACIÓN DE NOMBRES ALEATORIOS ÚNICOS
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreBarOriginal = "bar original " + sufijoAleatorio;
     String nombreBarModificado = "casa angel si " + sufijoAleatorio;
 
-    // 1. Abrir la aplicación
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().maximize();
     
-    // Esperas estándares y largas para absorber latencias de red
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
-    WebDriverWait waitLargoBares = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
+    WebDriverWait waitLargoBares = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
     
-    // 2. LOGIN PREVIO (Requisito para poder gestionar elementos de administración)
+    // Login previo
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
     
-    // 3. CREACIÓN PREVIA DEL BAR QUE SE VA A MODIFICAR
+    // Crear bar
     WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
     btnAddBar.click();
     
@@ -100,53 +90,67 @@ public class ModificarbarTest {
     
     driver.findElement(By.id("new-bar-dir")).click();
     driver.findElement(By.id("new-bar-dir")).sendKeys("direccion original 123");
-    
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
     
-    // Esperar a que el modal de creación se cierre antes de buscar la tarjeta
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // 4. SELECCIONAR EL BAR CREADO USANDO XPATH DINÁMICO
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
+    
+    // Seleccionar bar
     WebElement barCard = waitLargoBares.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
     );
     barCard.click();
     
-    // 5. PULSAR EL BOTÓN EDITAR (.edit)
+    // Pulsar editar
     WebElement btnEdit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".edit")));
     btnEdit.click();
     
-    // 6. MODIFICAR ATRIBUTOS DEL FORMULARIO 
+    // Modificar datos
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
-    inputBarDir.clear(); // Limpieza robusta para Jenkins headless
+    inputBarDir.clear(); 
     inputBarDir.sendKeys("alli o no");
     
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
-    inputBarName.clear(); // Limpieza robusta para Jenkins headless
+    inputBarName.clear(); 
     inputBarName.sendKeys(nombreBarModificado);
     
-    // 7. GUARDAR CAMBIOS
+    // Guardar cambios
     WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     btnSubmit.click();
     
-    // ESPERA DE SEGURIDAD A: Esperamos a que el formulario de edición desaparezca (confirma que el guardado se procesó)
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // 8. CERRAR DETALLE para volver a la lista de bares
+    // Cerrar vista detalle para actualizar listado
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
     
-    // Seleccionamos el bar de nuevo para verificar que la interacción con el detalle sigue funcionando
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de comprobar el cambio en la lista
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
+    
+    // Seleccionar usando el NUEVO nombre modificado
     WebElement barCardAgain = waitLargoBares.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarModificado + "')]"))
     );
     barCardAgain.click();
     
-    // Verificamos que la vista de detalle se abre correctamente
+    // Validar visualización y aserción correcta del nuevo nombre
     WebElement txtTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div:nth-child(2) > h2")));
     assertTrue(txtTitle.isDisplayed());
+    assertThat(txtTitle.getText(), is(nombreBarModificado));
   }
 }
