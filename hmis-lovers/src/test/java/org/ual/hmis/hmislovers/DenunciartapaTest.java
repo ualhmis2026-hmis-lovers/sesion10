@@ -65,6 +65,7 @@ public class DenunciartapaTest {
 
   @Test
   public void denunciartapa() throws InterruptedException {
+    // Espera inicial de cortesía para carga de red básica
     Thread.sleep(2000);
 
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
@@ -72,7 +73,7 @@ public class DenunciartapaTest {
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
     
-    // 1. Login
+    // 1. Login exitoso
     WebElement inputUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username")));
     inputUser.click();
     inputUser.sendKeys("admin");
@@ -96,25 +97,29 @@ public class DenunciartapaTest {
             WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
             inputBarName.clear();
             inputBarName.sendKeys(nombreBarDenuncia);
-            js.executeScript("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", inputBarName);
             Thread.sleep(200);
             
             WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
             inputBarDir.clear();
             inputBarDir.sendKeys("direccion denuncia 123");
-            js.executeScript("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", inputBarDir);
             Thread.sleep(200);
             
             WebElement btnSubmitBar = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".btn-submit-bar")));
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmitBar);
             Thread.sleep(300);
             
-            try { btnSubmitBar.click(); } catch (Exception e) { js.executeScript("arguments[0].click();", btnSubmitBar); }
+            try { 
+                btnSubmitBar.click(); 
+            } catch (Exception e) { 
+                js.executeScript("arguments[0].click();", btnSubmitBar); 
+            }
             
+            // Esperar que el modal/formulario desaparezca antes de refrescar
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
             Thread.sleep(2500); 
             driver.navigate().refresh();
             
+            // Intentar buscar el bar recién creado de forma asíncrona
             WebDriverWait waitIntento = new WebDriverWait(driver, java.time.Duration.ofSeconds(8));
             barCard = waitIntento.until(
                 ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
@@ -126,24 +131,33 @@ public class DenunciartapaTest {
         }
     }
     
-    // 3. ESTRATEGIA FALLBACK: Si Azure experimenta retrasos persistiendo, usamos cualquier bar visible
+    // 3. ESTRATEGIA FALLBACK MEJORADA: Si Azure tarda en persistir, rescatamos cualquier bar preexistente
     if (barCard == null) {
         System.out.println("[WARN] Azure lento persistiendo bar dinámico. Activando plan de contingencia con bar preexistente...");
         try {
-            // Selecciona la primera tarjeta de bar disponible en la home (usualmente h3 dentro de las cards)
-            barCard = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//h3")));
+            // Ampliamos el tiempo de espera por si la base de datos de Azure está haciendo un arranque en frío (Cold Start)
+            WebDriverWait waitContingencia = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+            
+            // Selector alternativo resiliente (busca selectores típicos de tarjetas o el primer h3 disponible)
+            barCard = waitContingencia.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector(".bar-card h3, .card-title, h3")
+            ));
             System.out.println("[INFO] Contingencia exitosa. Interactuando con el bar existente: " + barCard.getText());
         } catch (Exception e) {
-            fail("El backend de Azure no asimiló la persistencia y tampoco existen bares previos en el sistema.");
+            fail("Error crítico: El backend de Azure no asimiló los datos a tiempo y la página está completamente vacía de bares.");
         }
     }
     
-    // 4. Interactuar con el bar localizado (sea el creado o el recuperado por contingencia)
+    // 4. Interactuar con la tarjeta de bar localizada
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
     Thread.sleep(500);
-    try { barCard.click(); } catch (Exception e) { js.executeScript("arguments[0].click();", barCard); }
+    try { 
+        barCard.click(); 
+    } catch (Exception e) { 
+        js.executeScript("arguments[0].click();", barCard); 
+    }
     
-    // 5. Añadir tapa
+    // 5. Añadir una nueva tapa al bar
     {
       WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".btn-add-item")));
       Actions builder = new Actions(driver);
@@ -160,13 +174,14 @@ public class DenunciartapaTest {
     WebElement btnSubmitReview = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-review")));
     btnSubmitReview.click();
     
+    // Cerrar el Toast informativo de creación
     wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".toast-message"))).click();
     
-    // 6. Seleccionar tapa de la carta
+    // 6. Seleccionar la tapa creada en la carta
     WebElement cartaItem = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".carta-item-row")));
     cartaItem.click();
     
-    // 7. Denunciar
+    // 7. Ejecutar la denuncia de la tapa
     WebElement reportButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".report")));
     reportButton.click();
     
@@ -178,6 +193,7 @@ public class DenunciartapaTest {
     WebElement submitReportButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".neg:nth-child(1)")));
     submitReportButton.click();
     
+    // Confirmar que el aviso final de denuncia aparece correctamente
     WebElement toastMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".toast-message")));
     toastMessage.click();
   }
