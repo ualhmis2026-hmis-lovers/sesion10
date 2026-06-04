@@ -22,9 +22,8 @@ public class DenunciartapaTest {
 
   @Before
   public void setUp() {
-    // Selector de navegador uniforme para toda la suite de pruebas
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = true; // Forzado a true para evitar fallos de pantalla en Jenkins
+    boolean headless = true;
 
     switch (browser) {
       case 0:  // Firefox
@@ -65,6 +64,9 @@ public class DenunciartapaTest {
 
   @Test
   public void denunciartapa() {
+    // COOL-DOWN PARA AZURE: Evitamos saturar el servidor al inicio de la prueba
+    try { Thread.sleep(4000); } catch (Exception e) {}
+
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreBarDenuncia = "bar denuncia " + sufijoAleatorio;
     
@@ -72,7 +74,6 @@ public class DenunciartapaTest {
     driver.manage().window().maximize();
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
-    // Aumentamos a 45 segundos para mitigar la lentitud extrema de Azure Free
     WebDriverWait waitLargoAzure = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
     
     // Login
@@ -100,15 +101,7 @@ public class DenunciartapaTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // ESTABILIZACIÓN PARA AZURE LENTO: Pausa de seguridad + Refresco de página
-    try { 
-        Thread.sleep(1500); 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-    driver.navigate().refresh();
-    
-    // Seleccionar bar
+    // Seleccionar bar (La UI del navegador se actualiza automáticamente)
     WebElement barCard = waitLargoAzure.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
     );

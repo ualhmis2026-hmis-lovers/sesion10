@@ -65,6 +65,9 @@ public class EliminarbarTest {
 
   @Test
   public void eliminarbar() {
+    // COOL-DOWN PARA AZURE: Evitamos saturar el servidor al inicio de la prueba
+    try { Thread.sleep(4000); } catch (Exception e) {}
+
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreBarAEliminar = "bar borrar " + sufijoAleatorio;
 
@@ -95,14 +98,6 @@ public class EliminarbarTest {
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
-
-    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
-    try { 
-        Thread.sleep(1500); 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-    driver.navigate().refresh();
 
     // Seleccionar tarjeta creada
     WebElement barCard = waitLargo.until(

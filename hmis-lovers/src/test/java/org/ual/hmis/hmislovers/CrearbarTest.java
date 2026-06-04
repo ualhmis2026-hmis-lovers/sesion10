@@ -64,6 +64,9 @@ public class CrearbarTest {
 
   @Test
   public void crearbar() {
+    // COOL-DOWN PARA AZURE: Evitamos saturar el servidor al inicio de la prueba
+    try { Thread.sleep(4000); } catch (Exception e) {}
+
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreNuevoBar = "casa angel " + sufijoAleatorio;
 
@@ -93,14 +96,6 @@ public class CrearbarTest {
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
-
-    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
-    try { 
-        Thread.sleep(1500); 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-    driver.navigate().refresh();
 
     // Validar de forma dinámica que el bar aparece correctamente en la vista
     WebElement tarjetaCreada = waitLargo.until(

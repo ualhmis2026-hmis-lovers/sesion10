@@ -24,7 +24,7 @@ public class ModificarbarTest {
   @Before
   public void setUp() {
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = true; // Forzado a true para evitar fallos de pantalla en Jenkins
+    boolean headless = true;
 
     switch (browser) {
       case 0:  // Firefox
@@ -65,6 +65,9 @@ public class ModificarbarTest {
 
   @Test
   public void modificarbar() {
+    // COOL-DOWN PARA AZURE: Evitamos saturar el servidor al inicio de la prueba
+    try { Thread.sleep(4000); } catch (Exception e) {}
+
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreBarOriginal = "bar original " + sufijoAleatorio;
     String nombreBarModificado = "casa angel si " + sufijoAleatorio;
@@ -95,14 +98,6 @@ public class ModificarbarTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
-    try { 
-        Thread.sleep(1500); 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-    driver.navigate().refresh();
-    
     // Seleccionar bar
     WebElement barCard = waitLargoBares.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
@@ -130,17 +125,9 @@ public class ModificarbarTest {
     
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // Cerrar vista detalle para actualizar listado
+    // Cerrar vista detalle para volver a la lista principal
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
-    
-    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de comprobar el cambio en la lista
-    try { 
-        Thread.sleep(1500); 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-    driver.navigate().refresh();
     
     // Seleccionar usando el NUEVO nombre modificado
     WebElement barCardAgain = waitLargoBares.until(
