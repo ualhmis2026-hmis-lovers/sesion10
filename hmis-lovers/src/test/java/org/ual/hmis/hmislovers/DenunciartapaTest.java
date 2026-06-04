@@ -31,7 +31,6 @@ public class DenunciartapaTest {
         if (headless) {
           firefoxOptions.addArguments("--headless");
         }
-        // ESTABILIZACIÓN: Dimensiones de pantalla consistentes para el entorno headless de Jenkins
         firefoxOptions.addArguments("--width=1920");
         firefoxOptions.addArguments("--height=1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
@@ -76,7 +75,7 @@ public class DenunciartapaTest {
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
+    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(20));
     WebDriverWait waitLargoAzure = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
     
     // Login
@@ -94,31 +93,40 @@ public class DenunciartapaTest {
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
     inputBarName.sendKeys(nombreBarDenuncia);
+    try { Thread.sleep(300); } catch (Exception e) {} // Tiempo para enlazar modelo (Data binding)
     
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
     inputBarDir.sendKeys("direccion denuncia 123");
+    try { Thread.sleep(300); } catch (Exception e) {} // Tiempo para enlazar modelo (Data binding)
     
-    driver.findElement(By.cssSelector(".btn-submit-bar")).click();
+    // Envío del formulario forzado y robusto
+    WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
+    try {
+        btnSubmitBar.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", btnSubmitBar);
+    }
     
+    // Asegurar que el modal se cierra confirmando el guardado en el servidor antes de refrescar
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // ESTABILIZACIÓN AZURE: Breve pausa y refresco de seguridad para asimilar el nuevo registro asíncrono
+    // ESTABILIZACIÓN AZURE: Pausa estratégica de persistencia y refresco completo
     try { 
-        Thread.sleep(1500); 
+        Thread.sleep(2000); 
     } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
     }
     driver.navigate().refresh();
     
-    // CORRECCIÓN DEL BUG: Localizar por presencia, realizar scroll al centro y clic adaptativo
+    // Localizar por presencia, realizar scroll al centro de la pantalla y pulsar con contingencia JS
     WebElement barCard = waitLargoAzure.until(
         ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
     );
     
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
-    try { Thread.sleep(500); } catch (Exception e) {} // Pausa táctica tras scroll
+    try { Thread.sleep(600); } catch (Exception e) {}
     
     wait.until(ExpectedConditions.elementToBeClickable(barCard));
     try {
