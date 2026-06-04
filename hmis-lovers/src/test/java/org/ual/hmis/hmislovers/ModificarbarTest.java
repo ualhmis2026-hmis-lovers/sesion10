@@ -135,14 +135,18 @@ public class ModificarbarTest {
     // ESPERA DE SEGURIDAD A: Esperamos a que el formulario de edición desaparezca (lo que confirma el guardado)
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // El formulario de edición se cierra pero la vista de detalle permanece abierta.
-    // Verificamos directamente el título del bar en la vista de detalle.
+    // Recargamos la página para que la SPA refresque los datos desde el servidor
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+    
+    // Volvemos a hacer clic en el bar usando el NUEVO nombre modificado
+    WebElement barCardUpdated = waitLargoBares.until(
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarModificado + "')]"))
+    );
+    barCardUpdated.click();
+    
+    // Esperamos a que la etiqueta del nuevo título sea visible en el panel social/detalle
     WebElement txtTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div:nth-child(2) > h2")));
     
     assertThat(txtTitle.getText(), is(nombreBarModificado));
-    
-    // 8. CERRAR DETALLE
-    WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
-    btnCloseModal.click();
   }
 }
