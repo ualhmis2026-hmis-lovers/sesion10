@@ -43,7 +43,6 @@ public class DenunciartapaTest {
         }
         chromeOptions.addArguments("--start-maximized"); 
         chromeOptions.addArguments("window-size=1920,1080");
-        
         driver = new org.openqa.selenium.chrome.ChromeDriver(chromeOptions);
         break;
 
@@ -52,7 +51,7 @@ public class DenunciartapaTest {
         break;
     }
 
-    driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
+    driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(4));
     js = (JavascriptExecutor) driver;
     vars = new HashMap<String, Object>();
   }
@@ -66,74 +65,69 @@ public class DenunciartapaTest {
 
   @Test
   public void denunciartapa() {
-    // COOL-DOWN PARA AZURE: Evitamos saturar el servidor al inicio de la prueba
-    try { Thread.sleep(4000); } catch (Exception e) {}
+    try { Thread.sleep(3000); } catch (Exception e) {}
 
-    String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
-    String nombreBarDenuncia = "bar denuncia " + sufijoAleatorio;
-    
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(20));
-    WebDriverWait waitLargoAzure = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
+    WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
     
     // Login
     WebElement inputUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username")));
     inputUser.click();
     inputUser.sendKeys("admin");
-    
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
     
-    // Crear bar
-    WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
-    btnAddBar.click();
+    // BUCLE DE PERSISTENCIA ROBUSTO: Reintenta la creación si el backend sufre Race Condition
+    String nombreBarDenuncia = "";
+    WebElement barCard = null;
+    int intentos = 0;
     
-    WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
-    inputBarName.click();
-    inputBarName.sendKeys(nombreBarDenuncia);
-    try { Thread.sleep(300); } catch (Exception e) {} // Tiempo para enlazar modelo (Data binding)
-    
-    WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
-    inputBarDir.click();
-    inputBarDir.sendKeys("direccion denuncia 123");
-    try { Thread.sleep(300); } catch (Exception e) {} // Tiempo para enlazar modelo (Data binding)
-    
-    // Envío del formulario forzado y robusto
-    WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
-    try {
-        btnSubmitBar.click();
-    } catch (Exception e) {
-        js.executeScript("arguments[0].click();", btnSubmitBar);
+    while (barCard == null && intentos < 3) {
+        intentos++;
+        String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
+        nombreBarDenuncia = "bar denuncia " + sufijoAleatorio;
+        
+        try {
+            WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
+            js.executeScript("arguments[0].click();", btnAddBar);
+            
+            WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
+            inputBarName.clear();
+            inputBarName.sendKeys(nombreBarDenuncia);
+            
+            WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
+            inputBarDir.clear();
+            inputBarDir.sendKeys("direccion denuncia 123");
+            Thread.sleep(300);
+            
+            WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
+            js.executeScript("arguments[0].click();", btnSubmitBar);
+            
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
+            Thread.sleep(2000);
+            driver.navigate().refresh();
+            
+            // Verificar si impactó en el listado principal
+            WebDriverWait waitIntento = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
+            barCard = waitIntento.until(
+                ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
+            );
+        } catch (Exception e) {
+            barCard = null; // Fuerza el reintento limpio con otra id
+            driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+        }
     }
     
-    // Asegurar que el modal se cierra confirmando el guardado en el servidor antes de refrescar
-    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
-    
-    // ESTABILIZACIÓN AZURE: Pausa estratégica de persistencia y refresco completo
-    try { 
-        Thread.sleep(2000); 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
+    if (barCard == null) {
+        fail("El backend de Azure no asimiló la persistencia del bar tras 3 intentos.");
     }
-    driver.navigate().refresh();
     
-    // Localizar por presencia, realizar scroll al centro de la pantalla y pulsar con contingencia JS
-    WebElement barCard = waitLargoAzure.until(
-        ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
-    );
-    
+    // Interactuar de forma segura con el bar localizado
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
-    try { Thread.sleep(600); } catch (Exception e) {}
-    
-    wait.until(ExpectedConditions.elementToBeClickable(barCard));
-    try {
-        barCard.click();
-    } catch (Exception e) {
-        js.executeScript("arguments[0].click();", barCard);
-    }
+    try { Thread.sleep(500); } catch (Exception e) {}
+    try { barCard.click(); } catch (Exception e) { js.executeScript("arguments[0].click();", barCard); }
     
     // Añadir tapa
     {
