@@ -13,7 +13,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import java.util.*;
 
 public class DenunciartapaTest {
@@ -93,41 +92,49 @@ public class DenunciartapaTest {
             WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
             js.executeScript("arguments[0].click();", btnAddBar);
             
+            // Input Nombre
             WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
             inputBarName.clear();
             inputBarName.sendKeys(nombreBarDenuncia);
-            Thread.sleep(300);
+            // Sincronización forzada del DOM/Framework para el campo de nombre
+            js.executeScript("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", inputBarName);
+            js.executeScript("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", inputBarName);
+            Thread.sleep(400);
             
+            // Input Dirección
             WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
             inputBarDir.clear();
             inputBarDir.sendKeys("direccion denuncia 123");
-            Thread.sleep(300);
+            // Sincronización forzada del DOM/Framework para el campo de dirección
+            js.executeScript("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", inputBarDir);
+            js.executeScript("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", inputBarDir);
+            Thread.sleep(400);
             
-            // SOLUCIÓN AL INPUT: Enviar la tecla ENTER directamente al input para disparar el submit nativo del formulario HTML
-            inputBarDir.sendKeys(Keys.ENTER);
+            // Asegurar visibilidad del botón de envío
+            WebElement btnSubmitBar = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".btn-submit-bar")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmitBar);
+            Thread.sleep(500);
             
-            // Fallback si no cierra con ENTER
+            // Intentar click nativo, si falla (por estar semioculto o bloqueado temporalmente), forzar por JS
             try {
-                WebElement btnSubmitBar = driver.findElement(By.cssSelector(".btn-submit-bar"));
-                if (btnSubmitBar.isDisplayed()) {
-                    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmitBar);
-                    Thread.sleep(200);
-                    btnSubmitBar.click();
-                }
-            } catch (Exception ignored) {}
+                btnSubmitBar.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", btnSubmitBar);
+            }
             
+            // Esperar que el formulario desaparezca
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-            Thread.sleep(2500); // Tiempo prudencial de persistencia en Azure
+            Thread.sleep(3000); // Tiempo óptimo para el reflejo de persistencia en Azure DB
             driver.navigate().refresh();
             
-            WebDriverWait waitIntento = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
+            WebDriverWait waitIntento = new WebDriverWait(driver, java.time.Duration.ofSeconds(12));
             barCard = waitIntento.until(
                 ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
             );
         } catch (Exception e) {
             barCard = null;
             driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-            Thread.sleep(1000);
+            Thread.sleep(2000);
         }
     }
     
@@ -171,6 +178,7 @@ public class DenunciartapaTest {
     textarea.click();
     textarea.sendKeys("no estaba bueno");
     
+    @SuppressWarnings("deprecation")
     WebElement submitReportButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".neg:nth-child(1)")));
     submitReportButton.click();
     
