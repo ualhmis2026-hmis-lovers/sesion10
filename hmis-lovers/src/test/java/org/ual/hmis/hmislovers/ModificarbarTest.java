@@ -146,6 +146,10 @@ public class ModificarbarTest {
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
     
+    // Refrescamos la UI para forzar la recarga de la lista con los cambios
+    try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    driver.navigate().refresh();
+    
     // Volvemos a hacer clic en el bar usando el NUEVO nombre modificado para comprobar la persistencia de la vista detallada
     WebElement barCardUpdated = waitLargoBares.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarModificado + "')]"))
