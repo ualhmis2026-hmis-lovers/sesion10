@@ -23,8 +23,7 @@ public class ModificarUsuarioCorrectamenteTest {
 
   @Before
   public void setUp() {
-    // Configuración para Jenkins (0: firefox, 1: chrome)
-    int browser = 0; 
+    int browser = 0; // 0: firefox, 1: chrome
     boolean headless = true; 
 
     switch (browser) {
@@ -58,52 +57,54 @@ public class ModificarUsuarioCorrectamenteTest {
 
   @Test
   public void modificarUsuarioCorrectamente() {
-    // Definimos un tiempo de espera explícito máximo de 15 segundos para elementos lentos
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
 
-    // 1 | open | URL de la aplicación
+    // 1 | open | Cargar URL
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-    
-    // 2 | setWindowSize | Forzamos resolución Full HD estable
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
-    // 3 | click | Espera y hace clic de forma segura en el botón admin del header
+    // [PASO EXTRA] LOGIN OBLIGATORIO PARA ENTORNO LIMPIO (JENKINS)
+    try {
+        // Si pide login, introducimos las credenciales de administrador
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
+        driver.findElement(By.id("login-password")).sendKeys("1234");
+        driver.findElement(By.cssSelector(".btn-auth-submit")).click();
+        // Esperamos un instante a que procese la sesión
+        Thread.sleep(2000);
+    } catch (Exception e) {
+        // Si los IDs de login cambian o ya está logueado por algún motivo, continúa sin romper
+        System.out.println("Login no requerido o estructura diferente. Continuando al panel...");
+    }
+    
+    // 3 | click | Espera y hace clic en el botón admin del header
     WebElement btnAdminHeader = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-admin-header > .material-icons")));
     btnAdminHeader.click();
     
-    // 4 & 5 | mouseOver/mouseOut | Mantenemos las acciones de hover del IDE de forma segura
+    // 4 & 5 | mouseOver/mouseOut
     try {
       Actions builder = new Actions(driver);
       builder.moveToElement(btnAdminHeader).perform();
       WebElement bodyElement = driver.findElement(By.tagName("body"));
       builder.moveToElement(bodyElement, 0, 0).perform();
-    } catch (Exception e) {
-      // Ignorar fallos visuales de hover menores si estamos en headless
-    }
+    } catch (Exception e) {}
     
-    // 6 | click | Espera a que la tabla cargue y hace clic en el botón 'edit' de la fila 5
+    // 6 | click | Clic en el botón 'edit' de la fila 5
     WebElement btnEditRow = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("tr:nth-child(5) .edit")));
     btnEditRow.click();
     
-    // 7 & 8 | click & type | Espera al input de texto, lo limpia por completo y escribe el nuevo valor
+    // 7 & 8 | click & type | Modificar el input
     WebElement inputUsername = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("admin-edit-username")));
     inputUsername.click();
-    
-    // TRUCO SEGURO: Borramos el contenido previo seleccionándolo todo antes de escribir (evita concatenaciones)
     inputUsername.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
     inputUsername.sendKeys("pepejuan370123");
     
-    // 9 | click | Envía el formulario haciendo clic en guardar
+    // 9 | click | Guardar formulario
     WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     btnSubmitBar.click();
     
-    // 10 & 11 | click & assertText | Espera a que el DOM se actualice y confirma el cambio de texto
+    // 10 & 11 | click & assertText | Comprobar cambios
     WebElement txtResult = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".admin-card:nth-child(1) tr:nth-child(5) > .font-bold")));
-    
-    // Clic opcional que hacía tu script
     txtResult.click(); 
-    
-    // Verificación final del texto esperado
     assertThat(txtResult.getText(), is("pepejuan370123"));
   }
 }
