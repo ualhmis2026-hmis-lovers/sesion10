@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.is;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.Dimension;
@@ -109,24 +110,38 @@ public class DenunciartapaTest {
     );
     barCard.click();
     
-    // 4. Esperar a que cargue la carta y hacer clic en la primera tapa disponible
+    // 5. Añadir una tapa al bar para poder denunciarla
+    {
+      WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".btn-add-item")));
+      Actions builder = new Actions(driver);
+      builder.moveToElement(element).perform();
+    }
+    wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-item"))).click();
+    
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".menu-item-name-input"))).sendKeys("tapa a denunciar");
+    driver.findElement(By.cssSelector(".menu-item-price-input")).sendKeys("2");
+    driver.findElement(By.cssSelector(".neg")).click();
+    driver.findElement(By.cssSelector(".btn-submit-review")).click();
+    wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".toast-message"))).click();
+    
+    // 6. Esperar a que cargue la carta y hacer clic en la primera tapa disponible
     WebElement cartaItem = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".carta-item-row")));
     cartaItem.click();
     
-    // 5. Clicar en el botón de denunciar (report)
+    // 7. Clicar en el botón de denunciar (report)
     WebElement reportButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".report")));
     reportButton.click();
     
-    // 6. Escribir el motivo de la denuncia
+    // 8. Escribir el motivo de la denuncia
     WebElement textarea = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".custom-textarea")));
     textarea.click();
     textarea.sendKeys("no estaba bueno");
     
-    // 7. Enviar la denuncia (primer botón de confirmación en la modal)
+    // 9. Enviar la denuncia (primer botón de confirmación en la modal)
     WebElement submitReportButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".neg:nth-child(1)")));
     submitReportButton.click();
     
-    // 8. Esperar a que aparezca el mensaje de confirmación flotante (toast) y cerrarlo
+    // 10. Esperar a que aparezca el mensaje de confirmación flotante (toast) y cerrarlo
     WebElement toastMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".toast-message")));
     toastMessage.click();
   }
