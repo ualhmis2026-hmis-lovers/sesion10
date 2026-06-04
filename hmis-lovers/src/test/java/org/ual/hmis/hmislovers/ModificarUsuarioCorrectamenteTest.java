@@ -4,9 +4,11 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.JavascriptExecutor;
@@ -16,11 +18,13 @@ import java.util.*;
 
 public class ModificarUsuarioCorrectamenteTest {
   private WebDriver driver;
+  private Map<String, Object> vars;
   private JavascriptExecutor js;
 
   @Before
   public void setUp() {
-    int browser = 0; // 0: firefox, 1: chrome
+    // Configuración para Jenkins (0: firefox, 1: chrome)
+    int browser = 0; 
     boolean headless = true; 
 
     switch (browser) {
@@ -38,64 +42,68 @@ public class ModificarUsuarioCorrectamenteTest {
         driver = new org.openqa.selenium.chrome.ChromeDriver(chromeOptions);
         break;
     }
+    
     driver.manage().window().setSize(new Dimension(1920, 1080));
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
     js = (JavascriptExecutor) driver;
+    vars = new HashMap<String, Object>();
   }
 
   @After
   public void tearDown() {
-    if (driver != null) driver.quit();
+    if (driver != null) {
+      driver.quit();
+    }
   }
 
   @Test
   public void modificarUsuarioCorrectamente() {
-    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+    // Definimos un tiempo de espera explícito máximo de 15 segundos para elementos lentos
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
 
-    // 1. Proceso de Login
-    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
-    driver.findElement(By.id("login-password")).sendKeys("1234");
+    // 1 | open | URL de la aplicación
+    driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     
-    String urlAntesLogin = driver.getCurrentUrl();
-    driver.findElement(By.cssSelector(".btn-auth-submit")).click();
-
-    // Esperar a que la página asíncrona cargue el estado tras el login
+    // 2 | setWindowSize | Forzamos resolución Full HD estable
+    driver.manage().window().setSize(new Dimension(1920, 1080));
+    
+    // 3 | click | Espera y hace clic de forma segura en el botón admin del header
+    WebElement btnAdminHeader = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-admin-header > .material-icons")));
+    btnAdminHeader.click();
+    
+    // 4 & 5 | mouseOver/mouseOut | Mantenemos las acciones de hover del IDE de forma segura
     try {
-        wait.until(ExpectedConditions.not(ExpectedConditions.urlToBe(urlAntesLogin)));
+      Actions builder = new Actions(driver);
+      builder.moveToElement(btnAdminHeader).perform();
+      WebElement bodyElement = driver.findElement(By.tagName("body"));
+      builder.moveToElement(bodyElement, 0, 0).perform();
     } catch (Exception e) {
-        try { Thread.sleep(2000); } catch (InterruptedException ie) {}
+      // Ignorar fallos visuales de hover menores si estamos en headless
     }
-
-    // 2. NAVEGACIÓN INTELIGENTE (El bloque que soluciona el Timeout)
-    try {
-        // Solo esperamos 3 segundos. Busca cualquier cosa que diga "Usuar" o "User".
-        WebDriverWait waitCorto = new WebDriverWait(driver, java.time.Duration.ofSeconds(3));
-        By userMenuSelector = By.xpath("//*[contains(text(), 'Usuar') or contains(text(), 'User') or contains(@href, 'usuar') or contains(@href, 'user')]");
-        WebElement btnUsuarios = waitCorto.until(ExpectedConditions.presenceOfElementLocated(userMenuSelector));
-        js.executeScript("arguments[0].click();", btnUsuarios);
-        Thread.sleep(1000); // Dar un respiro a la web para renderizar la lista
-    } catch (Exception e) {
-        // SI NO EXISTE EL BOTÓN, NO PASA NADA. El test asume que la lista de usuarios ya está en pantalla.
-        System.out.println("Botón de Usuarios no encontrado o innecesario. Continuando...");
-    }
-
-    // 3. Modificación del usuario
-    // XPath adaptativo: Busca la palabra 'admin' y hace clic en el botón 'edit' cercano
-    WebElement userEditBtn = wait.until(ExpectedConditions.elementToBeClickable(
-        By.xpath("//*[contains(text(), 'admin')]/..//button[contains(@class, 'edit')] | //td[contains(text(), 'admin')]/following-sibling::td//button[contains(@class, 'edit')]")
-    ));
-    userEditBtn.click();
-
-    WebElement inputPassword = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("edit-user-password")));
-    inputPassword.click();
-    inputPassword.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
-    inputPassword.sendKeys("1234");
-
-    driver.findElement(By.cssSelector(".btn-submit-edit-user")).click();
-    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("edit-user-password")));
-
-    WebElement txtUserChecked = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), 'admin')]")));
-    assertTrue(txtUserChecked.isDisplayed());
+    
+    // 6 | click | Espera a que la tabla cargue y hace clic en el botón 'edit' de la fila 5
+    WebElement btnEditRow = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("tr:nth-child(5) .edit")));
+    btnEditRow.click();
+    
+    // 7 & 8 | click & type | Espera al input de texto, lo limpia por completo y escribe el nuevo valor
+    WebElement inputUsername = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("admin-edit-username")));
+    inputUsername.click();
+    
+    // TRUCO SEGURO: Borramos el contenido previo seleccionándolo todo antes de escribir (evita concatenaciones)
+    inputUsername.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
+    inputUsername.sendKeys("pepejuan370123");
+    
+    // 9 | click | Envía el formulario haciendo clic en guardar
+    WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
+    btnSubmitBar.click();
+    
+    // 10 & 11 | click & assertText | Espera a que el DOM se actualice y confirma el cambio de texto
+    WebElement txtResult = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".admin-card:nth-child(1) tr:nth-child(5) > .font-bold")));
+    
+    // Clic opcional que hacía tu script
+    txtResult.click(); 
+    
+    // Verificación final del texto esperado
+    assertThat(txtResult.getText(), is("pepejuan370123"));
   }
 }
