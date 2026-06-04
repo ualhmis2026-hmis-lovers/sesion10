@@ -70,7 +70,7 @@ public class SubirtapaTest {
     driver.manage().window().setSize(new Dimension(1920, 1080));
 
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
-    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
+    WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
 
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
@@ -83,7 +83,6 @@ public class SubirtapaTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarTapa);
 
-    // CORRECCIÓN: Foco/click explícito en la dirección antes de escribir
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
     inputBarDir.sendKeys("direccion tapa 123");
@@ -92,6 +91,14 @@ public class SubirtapaTest {
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
+
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
 
     WebElement barCard = waitLargo.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarTapa + "')]"))
@@ -114,7 +121,6 @@ public class SubirtapaTest {
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".menu-item-name-input"))).sendKeys("tapa nueva");
     driver.findElement(By.cssSelector(".menu-item-price-input")).sendKeys("2");
     
-    // CORRECCIÓN: Esperas explícitas para botones del modal de reseña/tapa
     WebElement btnNeg = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".neg")));
     btnNeg.click();
     
