@@ -128,16 +128,7 @@ public class ModificarbarTest {
     WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     btnSubmit.click();
     
-    // ==========================================
-    // MEJORA DE ESTABILIZACIÓN ASÍNCRONA CRÍTICA:
-    // Esperamos a que el sistema procese el guardado observando la lista de fondo antes de cerrar el modal.
-    // Esto asegura que la base de datos y el estado de la app muten correctamente.
-    waitLargoBares.until(ExpectedConditions.presenceOfElementLocated(
-        By.xpath("//h3[contains(text(), '" + nombreBarModificado + "')]")
-    ));
-    // ==========================================
-    
-    // 8. CERRAR MODAL
+    // 8. CERRAR MODAL (primero cerramos el modal para que la lista de bares se renderice con los cambios)
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
     
