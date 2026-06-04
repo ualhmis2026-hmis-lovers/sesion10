@@ -116,23 +116,31 @@ public class ModificarbarTest {
     // 6. MODIFICAR ATRIBUTOS DEL FORMULARIO 
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
-    inputBarDir.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
+    inputBarDir.clear(); // Limpieza robusta para Jenkins headless
     inputBarDir.sendKeys("alli o no");
     
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
-    inputBarName.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
+    inputBarName.clear(); // Limpieza robusta para Jenkins headless
     inputBarName.sendKeys(nombreBarModificado);
     
     // 7. GUARDAR CAMBIOS
     WebElement btnSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
     btnSubmit.click();
     
-    // 8. CERRAR MODAL (primero cerramos el modal para que la lista de bares se renderice con los cambios)
-    WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
+    // ESPERA DE SEGURIDAD A: Esperamos a que el formulario de edición desaparezca (lo que confirma el guardado)
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // Clic ejecutado por JavaScript para evitar interferencias con el modal-overlay
-    js.executeScript("arguments[0].click();", btnCloseModal);
+    // ESPERA DE SEGURIDAD B: Pausa de 500ms para que la animación CSS del overlay termine de desvanecerse
+    try {
+        Thread.sleep(500);
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    
+    // 8. CERRAR DETALLE (cerramos el detalle de forma segura para volver a la lista de bares)
+    WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
+    btnCloseModal.click();
     
     // Volvemos a hacer clic en el bar usando el NUEVO nombre modificado para comprobar la persistencia de la vista detallada
     WebElement barCardUpdated = waitLargoBares.until(
