@@ -83,7 +83,11 @@ public class SubirtapaTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarTapa);
 
-    driver.findElement(By.id("new-bar-dir")).sendKeys("direccion tapa 123");
+    // CORRECCIÓN: Foco/click explícito en la dirección antes de escribir
+    WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
+    inputBarDir.click();
+    inputBarDir.sendKeys("direccion tapa 123");
+    
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
@@ -106,11 +110,19 @@ public class SubirtapaTest {
     }
     wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-item"))).click();
 
+    // Sincronización robusta en la inserción de tapa
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".menu-item-name-input"))).sendKeys("tapa nueva");
     driver.findElement(By.cssSelector(".menu-item-price-input")).sendKeys("2");
-    driver.findElement(By.cssSelector(".neg")).click();
-    driver.findElement(By.cssSelector(".btn-submit-review")).click();
+    
+    // CORRECCIÓN: Esperas explícitas para botones del modal de reseña/tapa
+    WebElement btnNeg = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".neg")));
+    btnNeg.click();
+    
+    WebElement btnSubmitReview = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-review")));
+    btnSubmitReview.click();
+    
     wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".toast-message"))).click();
+    
     driver.findElement(By.cssSelector(".tab-content")).click();
 
     assertThat(driver.findElement(By.cssSelector(".carta-section:nth-child(1) > .carta-item-row:nth-child(2) .carta-item-name")).getText(), is("tapa nueva"));

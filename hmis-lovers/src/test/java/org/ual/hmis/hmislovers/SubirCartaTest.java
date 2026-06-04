@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.After;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.core.IsNot.not;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -15,8 +14,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.Keys;
 import java.util.*;
 
 public class SubirCartaTest {
@@ -26,9 +23,8 @@ public class SubirCartaTest {
 
   @Before
   public void setUp() {
-    // Selector de navegador uniforme para toda la suite de pruebas
     int browser = 0; // 0: firefox, 1: chrome
-    boolean headless = true; // Forzado a true para evitar fallos de pantalla en Jenkins
+    boolean headless = true;
 
     switch (browser) {
       case 0:  // Firefox
@@ -55,7 +51,6 @@ public class SubirCartaTest {
         break;
     }
 
-    // Sincronización base implícita
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
     js = (JavascriptExecutor) driver;
     vars = new HashMap<String, Object>();
@@ -70,23 +65,21 @@ public class SubirCartaTest {
 
   @Test
   public void subirCarta() {
-    // Generación dinámica única para aislar este test de los demás procesos concurrentes
     String sufijoAleatorio = UUID.randomUUID().toString().substring(0, 6);
     String nombreBarCarta = "bar carta " + sufijoAleatorio;
 
-    // 1. Abrir la aplicación
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
     WebDriverWait waitLargo = new WebDriverWait(driver, java.time.Duration.ofSeconds(30));
 
-    // 2. Login previo (Necesario para poder interactuar con la gestión del bar y subir archivos)
+    // Login previo
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
 
-    // 3. Crear entorno seguro: Añadir un bar específico para esta prueba
+    // Crear entorno seguro
     WebElement btnAddBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-bar")));
     btnAddBar.click();
 
@@ -94,51 +87,47 @@ public class SubirCartaTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarCarta);
 
-    driver.findElement(By.id("new-bar-dir")).sendKeys("direccion carta 123");
+    // CORRECCIÓN: Foco/click explícito en la dirección antes de escribir
+    WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
+    inputBarDir.click();
+    inputBarDir.sendKeys("direccion carta 123");
+    
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
 
-    // Esperar a que el modal overlay se cierre por completo
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
-    // 4. Buscar la tarjeta del bar que acabamos de crear de forma dinámica
+    // Buscar tarjeta
     WebElement barCard = waitLargo.until(
         ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarCarta + "')]"))
     );
     
-    // Scroll centrado preventivo para evitar intercepciones del header fijo
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
     try { Thread.sleep(500); } catch (Exception e) {}
     
     wait.until(ExpectedConditions.elementToBeClickable(barCard));
     
-    // Intento de clic robusto con fallback por JavaScript
     try {
         barCard.click();
     } catch (org.openqa.selenium.ElementClickInterceptedException e) {
         js.executeScript("arguments[0].click();", barCard);
     }
 
-    // 5. Interactuar con los botones de la cabecera/vista del bar (.btn-header-action)
+    // Interactuar con la cabecera
     WebElement btnHeaderAction = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-header-action")));
     
-    // Simular el mouseOver seguro
     {
       Actions builder = new Actions(driver);
       builder.moveToElement(btnHeaderAction).perform();
     }
-    
     btnHeaderAction.click();
 
-    // 6. Hacer clic en el botón o etiqueta para subir (.btn-upload-label)
     WebElement btnUploadLabel = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-upload-label")));
     btnUploadLabel.click();
 
-    // 7. Asegurar la visualización de la sección o subvista de la cabecera
     WebElement subviewHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".subview-header")));
     subviewHeader.click();
 
-    // 8. Aserción final del título de la sección de fotos
     WebElement txtFotosCarta = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h3:nth-child(2)")));
     assertThat(txtFotosCarta.getText(), is("Fotos de la carta"));
   }

@@ -87,7 +87,11 @@ public class EliminarbarTest {
     inputBarName.click();
     inputBarName.sendKeys(nombreBarAEliminar);
     
-    driver.findElement(By.id("new-bar-dir")).sendKeys("direccion temporal");
+    // CORRECCIÓN: Foco/click explícito en la dirección antes de escribir
+    WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
+    inputBarDir.click();
+    inputBarDir.sendKeys("direccion temporal");
+    
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
@@ -118,7 +122,7 @@ public class EliminarbarTest {
     assertThat(alert.getText(), is("¿Estás seguro de que deseas eliminar este bar? También se borrarán sus reseñas."));
     alert.accept();
 
-    // Sincronización post-borrado: Refrescamos la UI para forzar la lectura del estado limpio de la DB
+    // Sincronización post-borrado
     try { Thread.sleep(1000); } catch (Exception e) {}
     driver.navigate().refresh();
 
