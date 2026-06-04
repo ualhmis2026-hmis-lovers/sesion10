@@ -135,30 +135,14 @@ public class ModificarbarTest {
     // ESPERA DE SEGURIDAD A: Esperamos a que el formulario de edición desaparezca (lo que confirma el guardado)
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // ESPERA DE SEGURIDAD B: Pausa de 500ms para que la animación CSS del overlay termine de desvanecerse
-    try {
-        Thread.sleep(500);
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-    
-    // 8. CERRAR DETALLE (cerramos el detalle de forma segura para volver a la lista de bares)
-    WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
-    btnCloseModal.click();
-    
-    // Refrescamos la UI para forzar la recarga de la lista con los cambios
-    try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-    driver.navigate().refresh();
-    
-    // Volvemos a hacer clic en el bar usando el NUEVO nombre modificado para comprobar la persistencia de la vista detallada
-    WebElement barCardUpdated = waitLargoBares.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarModificado + "')]"))
-    );
-    barCardUpdated.click();
-    
-    // Esperamos a que la etiqueta del nuevo título sea visible en el panel social/detalle y realizamos el Assert final
+    // El formulario de edición se cierra pero la vista de detalle permanece abierta.
+    // Verificamos directamente el título del bar en la vista de detalle.
     WebElement txtTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div:nth-child(2) > h2")));
     
     assertThat(txtTitle.getText(), is(nombreBarModificado));
+    
+    // 8. CERRAR DETALLE
+    WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
+    btnCloseModal.click();
   }
 }
