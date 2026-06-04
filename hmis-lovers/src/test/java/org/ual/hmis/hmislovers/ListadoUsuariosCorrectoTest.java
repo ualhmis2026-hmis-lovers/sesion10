@@ -11,6 +11,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Dimension;
 import java.util.*;
 
 public class ListadoUsuariosCorrectoTest {
@@ -24,22 +25,34 @@ public class ListadoUsuariosCorrectoTest {
     boolean headless = true; 
 
     switch (browser) {
-      case 0:
+      case 0: // FIREFOX CORREGIDO
         org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
-        if (headless) firefoxOptions.addArguments("--headless");
+        if (headless) {
+          firefoxOptions.addArguments("--headless");
+        }
+        // Forzamos resolución de escritorio en Firefox Headless
+        firefoxOptions.addArguments("--width=1920");
+        firefoxOptions.addArguments("--height=1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
         break;
-      case 1:
+        
+      case 1: // CHROME
         org.openqa.selenium.chrome.ChromeOptions chromeOptions = new org.openqa.selenium.chrome.ChromeOptions();
-        if (headless) chromeOptions.addArguments("--headless=new");
+        if (headless) {
+          chromeOptions.addArguments("--headless=new");
+        }
         chromeOptions.addArguments("--start-maximized");
         chromeOptions.addArguments("window-size=1920,1080");
         driver = new org.openqa.selenium.chrome.ChromeDriver(chromeOptions);
         break;
+        
       default:
         fail("Please select a browser");
         break;
     }
+    
+    // Forzado de dimensiones base por ventana
+    driver.manage().window().setSize(new Dimension(1920, 1080));
     driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(5));
     js = (JavascriptExecutor) driver;
     vars = new HashMap<String, Object>();
@@ -58,23 +71,21 @@ public class ListadoUsuariosCorrectoTest {
     driver.manage().window().maximize();
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
 
-    // 1. Loguearse para tener permisos de ver la lista de usuarios
+    // 1. Loguearse para tener permisos
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-username"))).sendKeys("admin");
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
 
-    // 2. Acceder al módulo de listado de usuarios
+    // 2. Acceder al módulo de listado de usuarios (Ahora siempre visible e interactuable)
     WebElement btnUsuarios = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-users-management, [href*='user']")));
     btnUsuarios.click();
 
-    // CORRECCIÓN CRÍTICA DE LA LÍNEA 99:
-    // Evitamos buscar por índice de fila genérico (:nth-child) para que la inserción de bares (como 'Casa Puga') no desordene el test.
-    // Buscamos directamente la celda o elemento de texto que contiene el nombre de usuario de manera explícita.
+    // 3. Buscar directamente la celda con el texto del usuario de interés
     WebElement adminUserCell = wait.until(ExpectedConditions.visibilityOfElementLocated(
         By.xpath("//td[contains(text(), 'admin')] | //*[contains(@class, 'username') and contains(text(), 'admin')]")
     ));
 
-    // Validamos de forma segura que el texto del elemento encontrado contiene el valor esperado "admin"
+    // Validamos la aserción dinámicamente sin depender de la posición
     assertThat(adminUserCell.getText(), is("admin"));
   }
 }
