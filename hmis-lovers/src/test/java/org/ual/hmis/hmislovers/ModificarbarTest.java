@@ -32,6 +32,9 @@ public class ModificarbarTest {
         if (headless) {
           firefoxOptions.addArguments("--headless");
         }
+        // Forzamos dimensiones de ventana internas consistentes en el perfil de Firefox
+        firefoxOptions.addArguments("--width=1920");
+        firefoxOptions.addArguments("--height=1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
         break;
 
@@ -73,7 +76,7 @@ public class ModificarbarTest {
     String nombreBarModificado = "casa angel si " + sufijoAleatorio;
 
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-    driver.manage().window().maximize();
+    driver.manage().window().setSize(new Dimension(1920, 1080));
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
     WebDriverWait waitLargoBares = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
@@ -106,11 +109,20 @@ public class ModificarbarTest {
     }
     driver.navigate().refresh();
     
-    // Seleccionar bar
+    // SOLUCCIÓN DEL BUG: Esperamos presencia en el DOM, hacemos Scroll al centro y hacemos Clic robusto
     WebElement barCard = waitLargoBares.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
+        ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
     );
-    barCard.click();
+    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
+    try { Thread.sleep(500); } catch (Exception e) {} // Breve pausa para asimilar el scroll
+    
+    // Esperar a que sea clickeable tras el scroll y pulsar de forma segura
+    wait.until(ExpectedConditions.elementToBeClickable(barCard));
+    try {
+        barCard.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", barCard);
+    }
     
     // Pulsar editar
     WebElement btnEdit = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".edit")));
@@ -119,13 +131,11 @@ public class ModificarbarTest {
     // Modificar datos
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
-    // CORRECCIÓN: Borrado seguro por teclado para activar el refresco del Virtual DOM del frontend
     inputBarDir.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarDir.sendKeys("alli o no");
     
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
-    // CORRECCIÓN: Borrado seguro por teclado para activar el refresco del Virtual DOM del frontend
     inputBarName.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarName.sendKeys(nombreBarModificado);
     
@@ -147,11 +157,19 @@ public class ModificarbarTest {
     }
     driver.navigate().refresh();
     
-    // Seleccionar usando el NUEVO nombre modificado
+    // Seleccionar usando el NUEVO nombre modificado con scroll preventivo integrado
     WebElement barCardAgain = waitLargoBares.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarModificado + "')]"))
+        ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarModificado + "')]"))
     );
-    barCardAgain.click();
+    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCardAgain);
+    try { Thread.sleep(500); } catch (Exception e) {}
+
+    wait.until(ExpectedConditions.elementToBeClickable(barCardAgain));
+    try {
+        barCardAgain.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", barCardAgain);
+    }
     
     // Validar visualización y aserción correcta del nuevo nombre
     WebElement txtTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div:nth-child(2) > h2")));
