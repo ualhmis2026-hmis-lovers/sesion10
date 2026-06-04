@@ -91,6 +91,7 @@ public class EliminarbarTest {
     driver.findElement(By.cssSelector(".btn-submit-bar")).click();
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
     // Seleccionar tarjeta creada
     WebElement barCard = waitLargo.until(
