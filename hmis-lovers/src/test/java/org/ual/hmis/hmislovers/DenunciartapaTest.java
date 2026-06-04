@@ -106,7 +106,7 @@ public class DenunciartapaTest {
     
     // 4. Esperar a que cargue la lista de bares y clicar en el bar creado
     WebElement barCard = waitLargo.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarDenuncia + "')]"))
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
     );
     barCard.click();
     

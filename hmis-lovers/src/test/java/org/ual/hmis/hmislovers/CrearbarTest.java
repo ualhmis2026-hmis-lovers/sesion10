@@ -98,7 +98,7 @@ public class CrearbarTest {
 
     // Validar de forma dinámica que el bar aparece correctamente en la vista
     WebElement tarjetaCreada = waitLargo.until(
-        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreNuevoBar + "')]"))
+        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(., '" + nombreNuevoBar + "')]"))
     );
     
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", tarjetaCreada);

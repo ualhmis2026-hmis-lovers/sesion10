@@ -109,7 +109,7 @@ public class ModificarbarTest {
     
     // 4. SELECCIONAR EL BAR CREADO USANDO XPATH DINÁMICO
     WebElement barCard = waitLargoBares.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarOriginal + "')]"))
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
     );
     barCard.click();
     
@@ -141,7 +141,7 @@ public class ModificarbarTest {
     
     // Seleccionamos el bar de nuevo para verificar que la interacción con el detalle sigue funcionando
     WebElement barCardAgain = waitLargoBares.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarOriginal + "')]"))
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
     );
     barCardAgain.click();
     

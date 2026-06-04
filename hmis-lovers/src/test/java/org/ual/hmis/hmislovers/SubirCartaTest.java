@@ -103,7 +103,7 @@ public class SubirCartaTest {
 
     // 4. Buscar la tarjeta del bar que acabamos de crear de forma dinámica
     WebElement barCard = waitLargo.until(
-        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarCarta + "')]"))
+        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarCarta + "')]"))
     );
     
     // Scroll centrado preventivo para evitar intercepciones del header fijo

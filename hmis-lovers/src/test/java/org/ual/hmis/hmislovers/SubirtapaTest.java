@@ -90,7 +90,7 @@ public class SubirtapaTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
     WebElement barCard = waitLargo.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(text(), '" + nombreBarTapa + "')]"))
+        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarTapa + "')]"))
     );
     barCard.click();
 

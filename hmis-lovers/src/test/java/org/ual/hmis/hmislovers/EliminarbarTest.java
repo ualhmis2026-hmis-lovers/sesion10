@@ -95,7 +95,7 @@ public class EliminarbarTest {
 
     // Seleccionar tarjeta creada
     WebElement barCard = waitLargo.until(
-        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarAEliminar + "')]"))
+        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarAEliminar + "')]"))
     );
     
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
@@ -123,6 +123,6 @@ public class EliminarbarTest {
     driver.navigate().refresh();
 
     // Comprobación de que ya no existe
-    waitLargo.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarAEliminar + "')]")));
+    waitLargo.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarAEliminar + "')]")));
   }
 }

@@ -119,7 +119,7 @@ public class CrearNuevoUsuarioCorrectoTest {
     
 
     WebElement celdaUsuario = wait.until(ExpectedConditions.visibilityOfElementLocated(
-        By.xpath("//*[contains(text(), '" + nuevoUsuario + "')]")
+        By.xpath("//*[contains(., '" + nuevoUsuario + "')]")
     ));
     
     celdaUsuario.click();
