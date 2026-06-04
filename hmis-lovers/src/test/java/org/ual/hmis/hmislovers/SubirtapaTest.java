@@ -95,6 +95,14 @@ public class SubirtapaTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
 
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
+
     WebElement barCard = waitLargo.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarTapa + "')]"))
     );
@@ -105,11 +113,8 @@ public class SubirtapaTest {
       Actions builder = new Actions(driver);
       builder.moveToElement(element).perform();
     }
-    {
-      WebElement element = driver.findElement(By.tagName("body"));
-      Actions builder = new Actions(driver);
-      builder.moveToElement(element, 0, 0).perform();
-    }
+    
+    // CORRECCIÓN: Eliminamos la acción de mover el ratón de vuelta al body para evitar que el menú flotante se oculte
     wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-add-item"))).click();
 
     // Sincronización robusta en la inserción de tapa

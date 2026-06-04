@@ -98,6 +98,14 @@ public class ModificarbarTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de buscar el bar recién creado
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
+    
     // Seleccionar bar
     WebElement barCard = waitLargoBares.until(
         ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarOriginal + "')]"))
@@ -111,12 +119,14 @@ public class ModificarbarTest {
     // Modificar datos
     WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
     inputBarDir.click();
-    inputBarDir.clear(); 
+    // CORRECCIÓN: Borrado seguro por teclado para activar el refresco del Virtual DOM del frontend
+    inputBarDir.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarDir.sendKeys("alli o no");
     
     WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
     inputBarName.click();
-    inputBarName.clear(); 
+    // CORRECCIÓN: Borrado seguro por teclado para activar el refresco del Virtual DOM del frontend
+    inputBarName.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); 
     inputBarName.sendKeys(nombreBarModificado);
     
     // Guardar cambios
@@ -128,6 +138,14 @@ public class ModificarbarTest {
     // Cerrar vista detalle para volver a la lista principal
     WebElement btnCloseModal = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-close-modal > .material-icons")));
     btnCloseModal.click();
+    
+    // ESTABILIZACIÓN AZURE: Pausa y refresco antes de comprobar el cambio en la lista
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
     
     // Seleccionar usando el NUEVO nombre modificado
     WebElement barCardAgain = waitLargoBares.until(
