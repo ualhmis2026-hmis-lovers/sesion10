@@ -104,7 +104,6 @@ public class EliminarbarTest {
     // ==========================================
     // MEJORA DE ESTABILIZACIÓN ASÍNCRONA:
     // Esperamos a que el formulario/modal se cierre o deje de ser visible antes de buscar la tarjeta.
-    // Si tu app requiere pulsar un botón para cerrar el modal de creación, descomenta las líneas correspondientes.
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     // ==========================================
 
@@ -114,12 +113,22 @@ public class EliminarbarTest {
         ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(text(), '" + nombreBarAEliminar + "')]"))
     );
     
-    // Hacemos scroll seguro hasta el elemento mediante JavaScript por si aparece abajo del todo
-    js.executeScript("arguments[0].scrollIntoView(true);", barCard);
+    // Hacemos scroll seguro hasta el elemento centrándolo verticalmente para evitar que quede oculto tras el header fijo
+    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
     
-    // Esperamos a que sea clickeable una vez posicionado y hacemos clic
+    // Breve pausa para asegurar la estabilidad del scroll antes de la interacción
+    try { Thread.sleep(500); } catch (Exception e) {}
+    
+    // Esperamos a que sea clickeable
     wait.until(ExpectedConditions.elementToBeClickable(barCard));
-    barCard.click();
+    
+    // SOLUCIÓN AL FALLO DE INTERCEPCIÓN EN CHROME SIN ROMPER FIREFOX
+    try {
+        barCard.click();
+    } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+        System.out.println("Clic convencional interceptado por .header-content en Chrome. Usando clic nativo por JavaScript...");
+        js.executeScript("arguments[0].click();", barCard);
+    }
     
     // 5. PULSAR EL BOTÓN ELIMINAR (.delete)
     WebElement btnDelete = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".delete")));
