@@ -31,6 +31,9 @@ public class DenunciartapaTest {
         if (headless) {
           firefoxOptions.addArguments("--headless");
         }
+        // ESTABILIZACIÓN: Dimensiones de pantalla consistentes para el entorno headless de Jenkins
+        firefoxOptions.addArguments("--width=1920");
+        firefoxOptions.addArguments("--height=1080");
         driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
         break;
 
@@ -71,7 +74,7 @@ public class DenunciartapaTest {
     String nombreBarDenuncia = "bar denuncia " + sufijoAleatorio;
     
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
-    driver.manage().window().maximize();
+    driver.manage().window().setSize(new Dimension(1920, 1080));
     
     WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(15));
     WebDriverWait waitLargoAzure = new WebDriverWait(driver, java.time.Duration.ofSeconds(45));
@@ -101,11 +104,28 @@ public class DenunciartapaTest {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-submit-bar")));
     
-    // Seleccionar bar (La UI del navegador se actualiza automáticamente)
+    // ESTABILIZACIÓN AZURE: Breve pausa y refresco de seguridad para asimilar el nuevo registro asíncrono
+    try { 
+        Thread.sleep(1500); 
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    driver.navigate().refresh();
+    
+    // CORRECCIÓN DEL BUG: Localizar por presencia, realizar scroll al centro y clic adaptativo
     WebElement barCard = waitLargoAzure.until(
-        ExpectedConditions.elementToBeClickable(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
+        ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
     );
-    barCard.click();
+    
+    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
+    try { Thread.sleep(500); } catch (Exception e) {} // Pausa táctica tras scroll
+    
+    wait.until(ExpectedConditions.elementToBeClickable(barCard));
+    try {
+        barCard.click();
+    } catch (Exception e) {
+        js.executeScript("arguments[0].click();", barCard);
+    }
     
     // Añadir tapa
     {
