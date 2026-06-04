@@ -13,6 +13,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import java.util.*;
 
 public class DenunciartapaTest {
@@ -64,8 +65,8 @@ public class DenunciartapaTest {
   }
 
   @Test
-  public void denunciartapa() {
-    try { Thread.sleep(3000); } catch (Exception e) {}
+  public void denunciartapa() throws InterruptedException {
+    Thread.sleep(3000);
 
     driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
     driver.manage().window().setSize(new Dimension(1920, 1080));
@@ -79,7 +80,6 @@ public class DenunciartapaTest {
     driver.findElement(By.id("login-password")).sendKeys("1234");
     driver.findElement(By.cssSelector(".btn-auth-submit")).click();
     
-    // BUCLE DE PERSISTENCIA ROBUSTO: Reintenta la creación si el backend sufre Race Condition
     String nombreBarDenuncia = "";
     WebElement barCard = null;
     int intentos = 0;
@@ -96,27 +96,38 @@ public class DenunciartapaTest {
             WebElement inputBarName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-name")));
             inputBarName.clear();
             inputBarName.sendKeys(nombreBarDenuncia);
+            Thread.sleep(300);
             
             WebElement inputBarDir = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("new-bar-dir")));
             inputBarDir.clear();
             inputBarDir.sendKeys("direccion denuncia 123");
             Thread.sleep(300);
             
-            WebElement btnSubmitBar = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-submit-bar")));
-            js.executeScript("arguments[0].click();", btnSubmitBar);
+            // SOLUCIÓN AL INPUT: Enviar la tecla ENTER directamente al input para disparar el submit nativo del formulario HTML
+            inputBarDir.sendKeys(Keys.ENTER);
+            
+            // Fallback si no cierra con ENTER
+            try {
+                WebElement btnSubmitBar = driver.findElement(By.cssSelector(".btn-submit-bar"));
+                if (btnSubmitBar.isDisplayed()) {
+                    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmitBar);
+                    Thread.sleep(200);
+                    btnSubmitBar.click();
+                }
+            } catch (Exception ignored) {}
             
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("new-bar-name")));
-            Thread.sleep(2000);
+            Thread.sleep(2500); // Tiempo prudencial de persistencia en Azure
             driver.navigate().refresh();
             
-            // Verificar si impactó en el listado principal
             WebDriverWait waitIntento = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
             barCard = waitIntento.until(
                 ExpectedConditions.presenceOfElementLocated(By.xpath("//h3[contains(., '" + nombreBarDenuncia + "')]"))
             );
         } catch (Exception e) {
-            barCard = null; // Fuerza el reintento limpio con otra id
+            barCard = null;
             driver.get("https://calm-moss-09572aa03.7.azurestaticapps.net/");
+            Thread.sleep(1000);
         }
     }
     
@@ -124,9 +135,9 @@ public class DenunciartapaTest {
         fail("El backend de Azure no asimiló la persistencia del bar tras 3 intentos.");
     }
     
-    // Interactuar de forma segura con el bar localizado
+    // Interactuar con el bar localizado
     js.executeScript("arguments[0].scrollIntoView({block: 'center'});", barCard);
-    try { Thread.sleep(500); } catch (Exception e) {}
+    Thread.sleep(500);
     try { barCard.click(); } catch (Exception e) { js.executeScript("arguments[0].click();", barCard); }
     
     // Añadir tapa
